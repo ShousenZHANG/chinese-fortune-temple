@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    # Pinned image: ubuntu-latest moved to 26.04 and broke setup actions in the Skill repo (its CI run 44487920246).
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Fetch, verify and build (Skill release pinned in skill.config.json)
+        run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Install the Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: End-to-end tests against the built site
+        run: npm run test:e2e
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: failure()
+        with:
+          name: playwright-report
+          path: test-results/
+          retention-days: 7
