@@ -1,0 +1,6 @@
+node_modules/
+dist/
+# The Skill package is fetched and verified at build time, never committed.
+public/skill/
+test-results/
+playwright-report/
