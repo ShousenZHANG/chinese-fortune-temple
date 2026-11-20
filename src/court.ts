@@ -2,6 +2,7 @@
 // side halls on either hand. Halls that are not built yet say so instead of linking nowhere.
 import { artUrl, guideMonk, moonGate, type HallId } from './art';
 import { h } from './dom';
+import { dailySlip } from './daily';
 import { dharmaName } from './name';
 import { scene } from './scene';
 import { zen } from './zen';
@@ -85,6 +86,7 @@ export function court(): HTMLElement {
         h('a', { class: 'gate-link', href: '#/xiangke' }, '香客簿'),
       ),
     ),
+    dailySlip(),
     zen(() => bow(monk)),
   );
 }
