@@ -199,7 +199,6 @@ input[type="text"], input[type="number"], input[type="time"], input[type="month"
   box-shadow: 0 0 0 1.5px var(--wash);
   filter: var(--art-filter);
 }
-.closed .moon { filter: var(--art-filter) saturate(0.4); opacity: 0.85; }
 .at-qiuqian .moon { box-shadow: 0 0 0 2px var(--cinnabar); }
 
 .court {
@@ -248,7 +247,6 @@ input[type="text"], input[type="number"], input[type="time"], input[type="month"
 a.hall-tile:hover { border-color: var(--cinnabar); }
 .at-qiuqian { border-color: var(--cinnabar); }
 .at-qiuqian .plaque { border-color: var(--cinnabar); background: color-mix(in srgb, var(--gamboge) 25%, transparent); }
-.hall-tile.closed { color: var(--ink-soft); }
 .gate p { margin: 0; color: var(--ink-soft); font-size: var(--step--1); }
 .gate-link { font-weight: 600; white-space: nowrap; }
 
@@ -263,7 +261,6 @@ a.hall-tile:hover { border-color: var(--cinnabar); }
 .plaque.small { font-size: var(--step-1); }
 .label { display: flex; align-items: flex-start; gap: 0.9rem; text-align: left; }
 .does { max-width: 16em; font-size: var(--step--1); }
-.later { display: block; margin-top: 0.25rem; font-size: 0.8rem; }
 
 @media (max-width: 760px) {
   .spot { padding: 0.05rem 0.3rem; font-size: 0.72rem; letter-spacing: 0.05em; }
@@ -582,3 +579,7 @@ td.visual { font-family: var(--font-code); white-space: pre; }
   .walker { transition: none; }
   .zen-tool img { transition: none; }
 }
+
+/* English interface: names read across, not down. */
+:root[lang="en"] .plaque { writing-mode: horizontal-tb; letter-spacing: 0.04em; font-size: var(--step-1); }
+:root[lang="en"] .spot { letter-spacing: 0.02em; }

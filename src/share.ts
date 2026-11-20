@@ -2,6 +2,7 @@
 // may leave the device; this file only lays them out. Optional lines are off unless the caller turns them on.
 import { artUrl } from './art';
 import { h } from './dom';
+import { tr } from './i18n';
 import { download } from './download';
 
 export interface ShareLine {
@@ -129,7 +130,7 @@ async function draw(spec: ShareSpec, lines: string[]): Promise<HTMLCanvasElement
 export function sharePanel(spec: ShareSpec): HTMLElement {
   const preview = h('img', { class: 'share-preview', alt: '', 'data-testid': 'share-preview' });
   const status = h('p', { class: 'hint', 'aria-live': 'polite' });
-  const save = h('button', { type: 'button', class: 'primary', disabled: true }, '保存图片');
+  const save = h('button', { type: 'button', class: 'primary', disabled: true }, tr('保存图片', 'Save image'));
   const boxes = spec.lines.map((line) => line.optional
     ? h('input', { type: 'checkbox', ...(line.optional.on ? { checked: true } : {}) }) : null);
   let current: HTMLCanvasElement | null = null;
@@ -146,7 +147,7 @@ export function sharePanel(spec: ShareSpec): HTMLElement {
       save.disabled = false;
       status.textContent = '';
     } catch {
-      status.textContent = '这台设备画不出分享图。';
+      status.textContent = tr('这台设备画不出分享图。', 'This device cannot draw the share image.');
     }
   }
 
@@ -159,6 +160,6 @@ export function sharePanel(spec: ShareSpec): HTMLElement {
   return h('div', { class: 'share-panel' },
     ...spec.lines.flatMap((line, i) => (line.optional && boxes[i]
       ? [h('label', { class: 'choice' }, boxes[i], line.optional.label)] : [])),
-    h('p', { class: 'hint' }, '分享图在这台设备上生成，不上传。出生日期、时辰和四柱不会画进去。'),
+    h('p', { class: 'hint' }, tr('分享图在这台设备上生成，不上传。出生日期、时辰和四柱不会画进去。', 'The image is drawn on this device and not uploaded. Birth dates, hours and pillars are never drawn in.')),
     preview, h('div', { class: 'row' }, save), status);
 }

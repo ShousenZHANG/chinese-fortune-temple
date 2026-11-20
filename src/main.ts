@@ -3,6 +3,7 @@
 import './styles.css';
 import { mountApp } from './app';
 import type { LoadStage, ToolCall, ToolResult } from './skill/protocol';
+import { LANG_EVENT, tr } from './i18n';
 import { runTool, startSkill } from './skill/session';
 
 declare global {
@@ -12,27 +13,33 @@ declare global {
   }
 }
 
-const STAGES: Record<LoadStage, string> = {
-  python: '正在加载 Python…',
-  skill: '正在解开算法包…',
-  ready: '算法包已就绪',
-  failed: '算法包没有加载成功，请刷新再试',
+const STAGES: Record<LoadStage, () => string> = {
+  python: () => tr('正在加载 Python…', 'Loading Python…'),
+  skill: () => tr('正在解开算法包…', 'Unpacking the Skill…'),
+  ready: () => tr('算法包已就绪', 'The Skill is ready'),
+  failed: () => tr('算法包没有加载成功，请刷新再试', 'The Skill did not load. Please refresh the page.'),
 };
+
+let current: LoadStage | null = null;
 
 async function start(): Promise<void> {
   const label = document.querySelector<HTMLElement>('[data-testid="skill-version"]');
   const stage = document.querySelector<HTMLElement>('[data-testid="skill-stage"]');
   const root = document.querySelector<HTMLElement>('#app');
   if (root) mountApp(root);
+  window.addEventListener(LANG_EVENT, () => {
+    if (stage && current) stage.textContent = STAGES[current]();
+  });
   try {
     const manifest = await startSkill((next) => {
       document.documentElement.dataset.skillStage = next;
-      if (stage) stage.textContent = STAGES[next];
+      current = next;
+      if (stage) stage.textContent = STAGES[next]();
     });
     if (label) label.textContent = `chinese-fortune v${manifest.version} · ${manifest.commit.slice(0, 7)}`;
     window.temple = { runTool };
   } catch {
-    if (label) label.textContent = '算法包没有加载成功，请刷新再试';
+    if (label) label.textContent = STAGES.failed();
   }
 }
 

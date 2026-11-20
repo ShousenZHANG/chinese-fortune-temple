@@ -2,6 +2,7 @@
 // loads, and any time after. Counts stay in this browser; knocks are not merit, which only 还愿 records.
 import { artUrl } from './art';
 import { h } from './dom';
+import { tr } from './i18n';
 import { AMBIENT_EVENT, ambientOn, bead, bell, knock, muted, startAmbient, stopAmbient } from './sound';
 
 const BEADS = 108;
@@ -34,41 +35,41 @@ export function zen(onBow: () => void): HTMLElement {
   const beadLine = h('span', { class: 'zen-count', 'data-testid': 'beads' });
   const note = h('p', { class: 'hint', 'aria-live': 'polite' });
   const show = () => {
-    knockLine.textContent = `敲了 ${knocks} 下`;
+    knockLine.textContent = tr(`敲了 ${knocks} 下`, `${knocks} knocks`);
     beadLine.textContent = `${beads} / ${BEADS}`;
   };
 
   const tools = [
-    h('div', { class: 'zen-item' }, tool('敲木鱼', 'muyu.webp', () => {
+    h('div', { class: 'zen-item' }, tool(tr('敲木鱼', 'Knock the wooden fish'), 'muyu.webp', () => {
       knocks += 1;
       keep('temple.knocks', knocks);
       knock();
       show();
     }), knockLine),
-    h('div', { class: 'zen-item' }, tool('拨一颗念珠', 'beads.webp', () => {
+    h('div', { class: 'zen-item' }, tool(tr('拨一颗念珠', 'Tell a bead'), 'beads.webp', () => {
       beads = beads >= BEADS ? 1 : beads + 1;
       keep('temple.beads', beads);
       bead();
       if (beads === BEADS) {
         bell();
-        note.textContent = '一串 108 颗念完了。';
+        note.textContent = tr('一串 108 颗念完了。', 'All 108 beads told.');
       } else note.textContent = '';
       show();
     }), beadLine),
-    h('div', { class: 'zen-item' }, tool('撞钟', 'bell.webp', bell)),
-    h('div', { class: 'zen-item' }, tool('合掌', 'monk-greet.webp', onBow)),
+    h('div', { class: 'zen-item' }, tool(tr('撞钟', 'Strike the bell'), 'bell.webp', bell)),
+    h('div', { class: 'zen-item' }, tool(tr('合掌', 'Press palms'), 'monk-greet.webp', onBow)),
   ];
-  const ambient = h('button', { type: 'button', class: 'chip', 'aria-pressed': String(ambientOn()) }, '环境声：风声和诵经');
+  const ambient = h('button', { type: 'button', class: 'chip', 'aria-pressed': String(ambientOn()) }, tr('环境声：风声和诵经', 'Ambient sound: wind and chanting'));
   ambient.addEventListener('click', () => {
     if (ambientOn()) stopAmbient();
-    else if (!startAmbient()) note.textContent = muted() ? '现在是静音，先在页面顶部关掉静音。' : '这个浏览器放不了声音。';
+    else if (!startAmbient()) note.textContent = muted() ? tr('现在是静音，先在页面顶部关掉静音。', 'Sound is muted. Turn off Mute at the top of the page first.') : tr('这个浏览器放不了声音。', 'This browser cannot play sound.');
   });
   window.addEventListener(AMBIENT_EVENT, (event) => {
     ambient.setAttribute('aria-pressed', String((event as CustomEvent<boolean>).detail));
   });
   show();
-  return h('section', { class: 'zen', 'aria-label': '禅台' },
-    h('h3', { class: 'section-title' }, '禅台'),
-    h('p', { class: 'hint' }, '不求签也可以坐一会儿。第一次进门时算法包要加载十几秒，可以先在这里敲敲木鱼。'),
+  return h('section', { class: 'zen', 'aria-label': tr('禅台', 'Meditation corner') },
+    h('h3', { class: 'section-title' }, tr('禅台', 'Meditation corner')),
+    h('p', { class: 'hint' }, tr('不求签也可以坐一会儿。第一次进门时算法包要加载十几秒，可以先在这里敲敲木鱼。', 'Sit for a while without asking anything. On a first visit the Skill takes ten seconds or more to load; knock the wooden fish meanwhile.')),
     h('div', { class: 'zen-tools' }, ...tools), h('div', { class: 'row' }, ambient), note);
 }
