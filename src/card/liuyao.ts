@@ -1,7 +1,7 @@
 // liuyao_cast output to a 签文卡. Every word on the card comes from the tool's fields; this file only lays them out.
 import { h } from '../dom';
 import { glyph, positionName } from '../glyph';
-import { entry, passage, type CardModel } from './card';
+import { citations, citesIn, entry, type CardModel, type Cite } from './card';
 
 interface Line {
   position: number;
@@ -47,8 +47,6 @@ export interface LiuyaoResult {
   first_answer: { part: string; text: string }[];
 }
 
-const PASSAGE_ID = /\b[a-z_]+:c\d{3}:p\d{4}\b/g;
-
 function conditions(result: LiuyaoResult): string[] {
   return [...(result.reading_plan?.say ?? []), ...(result.must_cover ?? []).map((item) => item.what)];
 }
@@ -84,20 +82,15 @@ function chartTable(result: LiuyaoResult): HTMLElement {
 }
 
 function originals(result: LiuyaoResult): HTMLElement {
-  // The same passage can back several items; list each id once, with every item it backs.
-  const backing = new Map<string, { labels: string[]; quote?: string }>();
-  const cite = (ref: Reference | null | undefined, label: string) => {
-    if (!ref?.passage_id) return;
-    const known = backing.get(ref.passage_id) ?? { labels: [], quote: ref.quote };
-    backing.set(ref.passage_id, { labels: [...known.labels, label], quote: known.quote ?? ref.quote });
-  };
+  const cite = (ref: Reference | null | undefined, label: string): Cite[] =>
+    ref?.passage_id ? [{ id: ref.passage_id, label, quote: ref.quote }] : [];
   const source = result.yongshen_hint_source;
-  cite(source, source?.mapping ? `用神取法：${source.mapping}` : '用神取法');
-  for (const hit of result.rule_checks?.hits ?? []) cite(hit, `条件齐备：${hit.name}`);
-  cite(result.timing?.horizon, '应期远近');
-  for (const sentence of conditions(result)) {
-    for (const id of sentence.match(PASSAGE_ID) ?? []) cite({ passage_id: id }, '盘面条件所引');
-  }
+  const cites = [
+    ...cite(source, source?.mapping ? `用神取法：${source.mapping}` : '用神取法'),
+    ...(result.rule_checks?.hits ?? []).flatMap((hit) => cite(hit, `条件齐备：${hit.name}`)),
+    ...cite(result.timing?.horizon, '应期远近'),
+    ...citesIn(conditions(result), '盘面条件所引'),
+  ];
 
   return h('div', { class: 'layer-body' },
     result.main_judgment ? entry('卦辞', h('p', { class: 'classic' }, result.main_judgment)) : null,
@@ -105,14 +98,7 @@ function originals(result: LiuyaoResult): HTMLElement {
     result.active_line_text?.length
       ? entry('动爻爻辞', ...result.active_line_text.map((line) => h('p', { class: 'classic' }, line.text)))
       : null,
-    backing.size
-      ? entry('所据条文',
-        ...[...backing].map(([id, item]) => h('div', { class: 'citation' },
-          ...item.labels.map((label) => h('p', {}, label)),
-          item.quote ? h('p', { class: 'classic' }, item.quote) : null,
-          passage(id))),
-        result.rule_checks?.meaning ? h('p', { class: 'note' }, result.rule_checks.meaning) : null)
-      : null,
+    citations(cites, result.rule_checks?.meaning),
   );
 }
 

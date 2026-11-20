@@ -95,3 +95,15 @@ export function describeBirth(p: Pilgrim): string {
 
 export const genderName = (gender: Gender): string => (gender === 'male' ? '男' : '女');
 
+
+/** The birth object the Skill's stdin tools take (pair_facts, bazi_calc keys). No hour means the hour is unknown;
+ *  a leap lunar month is a negative month, as bazi_calc reads it. */
+export function birthJson(p: Pilgrim): Record<string, unknown> {
+  const { date, time } = p;
+  const leap = date.calendar === 'lunar' && date.leap;
+  return {
+    year: date.year, month: leap ? -date.month : date.month, day: date.day, gender: p.gender, city: p.city,
+    ...(date.calendar === 'lunar' ? { lunar: true } : {}),
+    ...(time.known ? { hour: time.hour, minute: time.minute } : {}),
+  };
+}
