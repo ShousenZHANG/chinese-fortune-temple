@@ -117,6 +117,20 @@ function extractCities() {
   writeFileSync(join(OUT, 'cities_cn.json'), files[entry]);
 }
 
+// The 缘起 page names the third-party packages the Skill runs with. They are read from the vendored wheels' own
+// METADATA, so an upgrade of the Skill updates the page.
+function vendoredPackages() {
+  const entry = 'chinese-fortune/scripts/vendor.zip';
+  const outer = unzipSync(readFileSync(join(OUT, archive)), { filter: (file) => file.name === entry });
+  if (!outer[entry]) fail(`${archive} has no ${entry}`);
+  const inner = unzipSync(outer[entry], { filter: (file) => /\.dist-info\/METADATA$/.test(file.name) });
+  return Object.values(inner).map((bytes) => {
+    const fields = Object.fromEntries(Buffer.from(bytes).toString('utf8').split(/\r?\n/)
+      .map((line) => line.match(/^(Name|Version|License): (.+)$/)).filter(Boolean).map((m) => [m[1], m[2]]));
+    return { name: fields.Name, version: fields.Version, license: fields.License };
+  }).sort((a, b) => a.name.localeCompare(b.name));
+}
+
 async function main() {
   mkdirSync(OUT, { recursive: true });
   const kept = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
@@ -124,7 +138,7 @@ async function main() {
   extractCities();
   const sources = {};
   for (const name of sourceSkills) sources[name] = await verifiedSource(name, release.commit, kept);
-  writeFileSync(manifestPath, `${JSON.stringify({ ...release, sources }, null, 2)}\n`);
+  writeFileSync(manifestPath, `${JSON.stringify({ ...release, sources, vendored: vendoredPackages() }, null, 2)}\n`);
 }
 
 try {
