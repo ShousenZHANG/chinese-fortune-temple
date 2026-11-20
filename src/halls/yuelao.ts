@@ -4,7 +4,8 @@ import { moonGate } from '../art';
 import { renderCard } from '../card/card';
 import { pairCard, type PairResult } from '../card/pair';
 import { h } from '../dom';
-import { birthJson, genderName, type Pilgrim } from '../records/pilgrim';
+import { pilgrimPicker } from '../records/picker';
+import { birthJson, type Pilgrim } from '../records/pilgrim';
 import { listPilgrims } from '../records/store';
 import { runJson, ToolFailed } from '../skill/session';
 
@@ -14,16 +15,9 @@ const BOOKS = {
 } as const;
 type Book = keyof typeof BOOKS;
 
-function picker(id: string, label: string, people: Pilgrim[], selected: number) {
-  const select = h('select', { id },
-    ...people.map((p, i) => h('option', { value: p.id, ...(i === selected ? { selected: true } : {}) },
-      `${p.name}（${genderName(p.gender)}）`)));
-  return { select, field: h('span', { class: 'zone-pick' }, h('label', { for: id }, label), select) };
-}
-
 function hall(people: Pilgrim[]): HTMLElement[] {
-  const a = picker('pair-a', '一方', people, 0);
-  const b = picker('pair-b', '另一方', people, 1);
+  const a = pilgrimPicker('pair-a', '一方', people, 0);
+  const b = pilgrimPicker('pair-b', '另一方', people, 1);
   const tagA = h('span', { class: 'tag' });
   const tagB = h('span', { class: 'tag' });
   const tie = h('div', { class: 'tie', 'aria-hidden': 'true' }, tagA, h('span', { class: 'thread' }), tagB);
@@ -34,8 +28,7 @@ function hall(people: Pilgrim[]): HTMLElement[] {
       h('input', { type: 'radio', name: 'book', value: book, ...(i === 0 ? { checked: true } : {}) }), BOOKS[book].label)));
   const button = h('button', { type: 'button', class: 'primary', onclick: () => void cast() }, '系红绳');
 
-  const chosen = (): [Pilgrim, Pilgrim] => [a.select.value, b.select.value]
-    .map((id) => people.find((p) => p.id === id) as Pilgrim) as [Pilgrim, Pilgrim];
+  const chosen = (): [Pilgrim, Pilgrim] => [a.pick(), b.pick()];
   const book = () => (books.querySelector<HTMLInputElement>('input:checked')?.value ?? 'xuanze') as Book;
 
   function refresh() {

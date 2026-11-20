@@ -414,6 +414,8 @@ input[type="time"] { width: auto; }
 table { border-collapse: collapse; font-size: var(--step--1); white-space: nowrap; }
 th, td { padding: 0.35rem 0.7rem; border-bottom: 1px solid var(--wash); text-align: left; }
 thead th { color: var(--ink-soft); font-weight: 600; }
+tbody th[scope="row"] { min-width: 4em; max-width: 22em; white-space: normal; }
+caption { padding-bottom: 0.35rem; color: var(--ink-soft); font-weight: 600; text-align: left; }
 td.visual { font-family: var(--font-code); white-space: pre; }
 
 .entry { display: flex; flex-direction: column; gap: 0.4rem; }
