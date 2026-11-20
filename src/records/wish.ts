@@ -1,6 +1,7 @@
 // One wish in 愿望簿. A wish is made, then either fulfilled with an offering or released; the state carries what
 // each outcome needs, so a released wish cannot hold an offering. Merit is the count of fulfilled wishes, nothing
 // stored apart. Records come from the form or an imported file and both pass through parseWish.
+import { tr } from '../i18n';
 import { InvalidRecord } from './pilgrim';
 
 export const CATEGORIES = ['学业', '事业', '姻缘', '健康', '平安', '财运', '其他'] as const;
@@ -28,7 +29,18 @@ export interface Wish {
 export const WISH_MAX = 100;
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-export const STATUS_NAMES: Record<WishState['status'], string> = { made: '已许', fulfilled: '已还', released: '已放下' };
+const STATUS_EN: Record<WishState['status'], [string, string]> = {
+  made: ['已许', 'Made'], fulfilled: ['已还', 'Fulfilled'], released: ['已放下', 'Released'],
+};
+const CATEGORY_EN: Record<Category, string> = {
+  学业: 'Study', 事业: 'Work', 姻缘: 'Love', 健康: 'Health', 平安: 'Safety', 财运: 'Money', 其他: 'Other',
+};
+const OFFERING_EN: Record<Offering, string> = { incense: 'Offer incense', lamp: 'Light a lamp', ribbon: 'Hang a red ribbon' };
+
+// Stored values stay Chinese; these give their names in the interface language.
+export const statusName = (status: WishState['status']): string => tr(...STATUS_EN[status]);
+export const categoryName = (category: Category): string => tr(category, CATEGORY_EN[category]);
+export const offeringName = (offering: Offering): string => tr(OFFERINGS[offering], OFFERING_EN[offering]);
 
 // Wishes against someone else (spec story 55): a curse is refused on its own; harm words are refused when the wish
 // names another person. Checked in this browser; nothing is sent anywhere.
@@ -55,40 +67,44 @@ export function refusal(raw: string): string | null {
   const harm = harmIn(text);
   const other = OTHERS.find((word) => text.includes(word));
   if (!curse && !(harm && other)) return null;
-  return `许愿树不收希望别人受害的愿望（这句里有「${curse ?? `${other}…${harm}`}」）。`
-    + '如果有人伤害了你，可以写一个关于你自己的愿，比如平安离开、讨回公道；现实里怎么做，可以去问心堂问。';
+  const found = curse ?? `${other}…${harm}`;
+  return tr(`许愿树不收希望别人受害的愿望（这句里有「${found}」）。`
+    + '如果有人伤害了你，可以写一个关于你自己的愿，比如平安离开、讨回公道；现实里怎么做，可以去问心堂问。',
+  `The Wish Tree does not take wishes for harm to someone else (this one has 「${found}」). `
+    + 'If someone has hurt you, write a wish about yourself, such as getting away safely or seeing justice done; '
+    + 'for what to do in practice, ask at the Hall of Questions.');
 }
 
 /** Shown beside any wish about health (spec story 52); the wish is still taken. */
 export const healthNote = (category: Category, text: string): string | null =>
-  category === '健康' || /病|健康|手术|身体|住院/.test(text) ? '身体不适先就医。许愿是心意，不代替看病。' : null;
+  category === '健康' || /病|健康|手术|身体|住院/.test(text) ? tr('身体不适先就医。许愿是心意，不代替看病。', 'If you feel unwell, see a doctor first. A wish is a hope, not a treatment.') : null;
 
 function date(value: unknown, field: string): string {
-  if (typeof value !== 'string' || !DATE.test(value) || Number.isNaN(Date.parse(value))) throw new InvalidRecord(`${field}不是有效日期。`);
+  if (typeof value !== 'string' || !DATE.test(value) || Number.isNaN(Date.parse(value))) throw new InvalidRecord(tr(`${field}不是有效日期。`, `${field}: not a valid date.`));
   return value;
 }
 
 function parseState(raw: unknown): WishState {
   const state = (raw ?? {}) as Record<string, unknown>;
   if (state.status === 'made') return { status: 'made' };
-  if (state.status === 'released') return { status: 'released', on: date(state.on, '放下的日子') };
+  if (state.status === 'released') return { status: 'released', on: date(state.on, tr('放下的日子', 'Release day')) };
   if (state.status === 'fulfilled' && typeof state.offering === 'string' && state.offering in OFFERINGS) {
-    return { status: 'fulfilled', on: date(state.on, '还愿的日子'), offering: state.offering as Offering };
+    return { status: 'fulfilled', on: date(state.on, tr('还愿的日子', 'Fulfilment day')), offering: state.offering as Offering };
   }
-  throw new InvalidRecord('愿望的状态认不出。');
+  throw new InvalidRecord(tr('愿望的状态认不出。', 'The wish’s state is not recognised.'));
 }
 
 export function parseWish(raw: unknown): Wish {
   const value = (raw ?? {}) as Record<string, unknown>;
-  if (typeof value.id !== 'string' || !value.id) throw new InvalidRecord('愿望缺少编号。');
-  if (!CATEGORIES.includes(value.category as Category)) throw new InvalidRecord('请选愿望的类别。');
+  if (typeof value.id !== 'string' || !value.id) throw new InvalidRecord(tr('愿望缺少编号。', 'The wish has no id.'));
+  if (!CATEGORIES.includes(value.category as Category)) throw new InvalidRecord(tr('请选愿望的类别。', 'Choose a category.'));
   const text = typeof value.text === 'string' ? value.text.trim() : '';
-  if (!text || text.length > WISH_MAX) throw new InvalidRecord(`心愿要写 1 到 ${WISH_MAX} 个字。`);
+  if (!text || text.length > WISH_MAX) throw new InvalidRecord(tr(`心愿要写 1 到 ${WISH_MAX} 个字。`, `Write the wish in 1 to ${WISH_MAX} characters.`));
   const why = refusal(text);
   if (why) throw new InvalidRecord(why);
-  const madeOn = date(value.madeOn, '许愿的日子');
-  const returnOn = date(value.returnOn, '还愿日');
-  if (returnOn <= madeOn) throw new InvalidRecord('还愿日要在许愿那天之后。');
+  const madeOn = date(value.madeOn, tr('许愿的日子', 'Wish day'));
+  const returnOn = date(value.returnOn, tr('还愿日', 'Return day'));
+  if (returnOn <= madeOn) throw new InvalidRecord(tr('还愿日要在许愿那天之后。', 'The return day must come after the day the wish is made.'));
   const source = value.source as Wish['source'] | undefined;
   return { id: value.id, category: value.category as Category, text, madeOn, returnOn,
     source: source && typeof source.title === 'string' && typeof source.question === 'string'

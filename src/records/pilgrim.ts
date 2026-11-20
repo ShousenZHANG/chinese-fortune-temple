@@ -1,5 +1,7 @@
 // One person in 香客簿, and the two ways a hall hands them to the Skill. Records come from the form or from an
 // imported file; both pass through parsePilgrim, so everything after it trusts the shape.
+import { currentLang, tr } from '../i18n';
+
 export type Gender = 'male' | 'female';
 
 export type BirthDate =
@@ -30,45 +32,45 @@ const DIGITS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九
 
 function integer(value: unknown, field: string, min: number, max: number): number {
   if (typeof value !== 'number' || !Number.isInteger(value) || value < min || value > max) {
-    throw new InvalidRecord(`${field}要在 ${min} 到 ${max} 之间。`);
+    throw new InvalidRecord(tr(`${field}要在 ${min} 到 ${max} 之间。`, `${field} must be between ${min} and ${max}.`));
   }
   return value;
 }
 
 function record(value: unknown, field: string): Record<string, unknown> {
-  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new InvalidRecord(`缺少${field}。`);
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) throw new InvalidRecord(tr(`缺少${field}。`, `${field} is missing.`));
   return value as Record<string, unknown>;
 }
 
 function parseDate(raw: unknown): BirthDate {
-  const date = record(raw, '出生日期');
-  const year = integer(date.year, '出生年份', YEARS.min, YEARS.max);
-  const month = integer(date.month, '月份', 1, 12);
+  const date = record(raw, tr('出生日期', 'Birth date'));
+  const year = integer(date.year, tr('出生年份', 'Birth year'), YEARS.min, YEARS.max);
+  const month = integer(date.month, tr('月份', 'Month'), 1, 12);
   if (date.calendar === 'lunar') {
-    return { calendar: 'lunar', year, month, day: integer(date.day, '农历日', 1, 30), leap: date.leap === true };
+    return { calendar: 'lunar', year, month, day: integer(date.day, tr('农历日', 'Lunar day'), 1, 30), leap: date.leap === true };
   }
-  if (date.calendar !== 'solar') throw new InvalidRecord('历法只能是公历或农历。');
-  const day = integer(date.day, '日', 1, 31);
+  if (date.calendar !== 'solar') throw new InvalidRecord(tr('历法只能是公历或农历。', 'The calendar must be Gregorian or Chinese lunar.'));
+  const day = integer(date.day, tr('日', 'Day'), 1, 31);
   const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  if (day > last) throw new InvalidRecord(`公历 ${year} 年 ${month} 月没有 ${day} 日。`);
+  if (day > last) throw new InvalidRecord(tr(`公历 ${year} 年 ${month} 月没有 ${day} 日。`, `${year}-${pad(month)} has no day ${day}.`));
   return { calendar: 'solar', year, month, day };
 }
 
 function parseTime(raw: unknown): BirthTime {
-  const time = record(raw, '出生时间');
+  const time = record(raw, tr('出生时间', 'Birth time'));
   if (time.known === false) return { known: false };
-  return { known: true, hour: integer(time.hour, '时', 0, 23), minute: integer(time.minute, '分', 0, 59) };
+  return { known: true, hour: integer(time.hour, tr('时', 'Hour'), 0, 23), minute: integer(time.minute, tr('分', 'Minute'), 0, 59) };
 }
 
 /** Turns untrusted input into a Pilgrim, or throws InvalidRecord naming the first field that is wrong. */
 export function parsePilgrim(raw: unknown, knownCity: (name: string) => boolean): Pilgrim {
-  const value = record(raw, '香客资料');
+  const value = record(raw, tr('香客资料', 'The person’s details'));
   const name = typeof value.name === 'string' ? value.name.trim() : '';
-  if (!name || name.length > NAME_MAX) throw new InvalidRecord(`称呼要写 1 到 ${NAME_MAX} 个字。`);
-  if (value.gender !== 'male' && value.gender !== 'female') throw new InvalidRecord('请选性别。');
+  if (!name || name.length > NAME_MAX) throw new InvalidRecord(tr(`称呼要写 1 到 ${NAME_MAX} 个字。`, `Write a name of 1 to ${NAME_MAX} characters.`));
+  if (value.gender !== 'male' && value.gender !== 'female') throw new InvalidRecord(tr('请选性别。', 'Choose a sex.'));
   const city = typeof value.city === 'string' ? value.city.trim() : '';
-  if (!knownCity(city)) throw new InvalidRecord(city ? `城市表里没有「${city}」，请从列表里选。` : '请选出生地。');
-  if (typeof value.id !== 'string' || !value.id) throw new InvalidRecord('记录缺少编号。');
+  if (!knownCity(city)) throw new InvalidRecord(city ? tr(`城市表里没有「${city}」，请从列表里选。`, `「${city}」 is not in the city table; choose from the list.`) : tr('请选出生地。', 'Choose a birthplace.'));
+  if (typeof value.id !== 'string' || !value.id) throw new InvalidRecord(tr('记录缺少编号。', 'The record has no id.'));
   const addedAt = typeof value.addedAt === 'string' && !Number.isNaN(Date.parse(value.addedAt))
     ? value.addedAt : new Date().toISOString();
   return { id: value.id, name, gender: value.gender, date: parseDate(value.date), time: parseTime(value.time), city,
@@ -87,13 +89,19 @@ function lunarDay(day: number): string {
 /** "公历 1990-06-12，时辰不知道，北京" or "农历 1992 年八月廿二 08:30，香港". */
 export function describeBirth(p: Pilgrim): string {
   const { date, time } = p;
+  const at = time.known ? ` ${pad(time.hour)}:${pad(time.minute)}` : '';
+  if (currentLang() === 'en') {
+    const day = date.calendar === 'solar' ? `Gregorian ${date.year}-${pad(date.month)}-${pad(date.day)}`
+      : `Chinese lunar ${date.year}, ${date.leap ? 'leap ' : ''}month ${date.month}, day ${date.day}`;
+    return `${day}${time.known ? at : ', hour unknown'}, ${p.city}`;
+  }
   const day = date.calendar === 'solar'
     ? `公历 ${date.year}-${pad(date.month)}-${pad(date.day)}`
     : `农历 ${date.year} 年${date.leap ? '闰' : ''}${LUNAR_MONTHS[date.month - 1]}月${lunarDay(date.day)}`;
-  return `${day}${time.known ? ` ${pad(time.hour)}:${pad(time.minute)}` : '，时辰不知道'}，${p.city}`;
+  return `${day}${time.known ? at : '，时辰不知道'}，${p.city}`;
 }
 
-export const genderName = (gender: Gender): string => (gender === 'male' ? '男' : '女');
+export const genderName = (gender: Gender): string => (gender === 'male' ? tr('男', 'male') : tr('女', 'female'));
 
 
 /** The birth object the Skill's stdin tools take (pair_facts, bazi_calc keys). No hour means the hour is unknown;
