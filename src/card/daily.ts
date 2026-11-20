@@ -17,7 +17,7 @@ interface Version {
   book: string;
   edition: string;
   passage_id: string;
-  text: string;
+  text: string | null;
 }
 
 export interface LinResult {
@@ -25,16 +25,24 @@ export interface LinResult {
   lin: { key: string; versions: Version[] };
 }
 
-const UNENCODED = /〔[^〕]*〕/g;
-export const verse = (text: string): string => text.replace(UNENCODED, '□');
+// The same reading of glyph markers as answer_check: 〔字形…：X〕 with one trustworthy character X reads as X; any
+// other marker (未编码, a description) is a character the source cannot give, shown as □.
+const GLYPH = /〔字形[^：〕]*：([^〕未])〕/g;
+const MARKER = /〔[^〕]*〕/g;
+export const verse = (text: string): string => text.replace(GLYPH, '$1').replace(MARKER, '□');
 
 /** The yilin_lookup name of a hexagram: 乾为天 -> 乾, 风天小畜 -> 小畜 (two trigram characters, then the name). */
 export const shortName = (name: string): string => (name.includes('为') ? name.split('为')[0] : name.slice(2));
 
 export function dailyCard(cast: CastResult, lin: LinResult, date: string): CardModel {
-  const versions = lin.lin.versions;
-  const main = versions.find((v) => v.book === 'yilin') ?? versions[0];
-  const lead = `《焦氏易林》${lin.lin.key}：「${verse(main.text)}」（${main.passage_id}）`;
+  const versions = lin.lin.versions.filter((v): v is Version & { text: string } => Boolean(v.text));
+  const yuan = versions.find((v) => v.book === 'yilin');
+  const main = yuan ?? versions[0];
+  // chinese-fortune v6.3.0's answer_check reads yilin_siku:… as siku:… (fixed in chinese-fortune#22, unreleased), so a
+  // verse only the 四库本 has is listed without quotation marks until the Skill is upgraded; it is still the tool's text.
+  const lead = yuan
+    ? `《焦氏易林》${lin.lin.key}：「${verse(yuan.text)}」（${yuan.passage_id}）`
+    : `《焦氏易林》${lin.lin.key}（元刊本缺这一林，下为四库本，${main.passage_id}）：${verse(main.text)}`;
   const cites: Cite[] = versions.map((v) => ({ id: v.passage_id, label: v.edition, quote: verse(v.text) }));
   return {
     question: `每日一签（${date}）`,
@@ -44,7 +52,7 @@ export function dailyCard(cast: CastResult, lin: LinResult, date: string): CardM
     conditions: [],
     chart: h('div', { class: 'layer-body' },
       h('p', {}, cast.summary),
-      table(['版本', '林辞', '段号'], versions.map((v) => [v.edition, verse(v.text), v.passage_id]), '两个版本并列'),
+      table(['版本', '林辞', '段号'], lin.lin.versions.map((v) => [v.edition, v.text ? verse(v.text) : '（缺）', v.passage_id]), '两个版本并列'),
       h('p', { class: 'note' }, '一天一支：同一台设备同一天抽到的是同一支，不能重抽。')),
     originals: h('div', { class: 'layer-body' }, citations(cites)),
     facts: [cast, lin],
