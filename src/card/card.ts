@@ -37,27 +37,28 @@ interface CheckReport {
   findings: Finding[];
 }
 
-async function check(model: CardModel): Promise<Finding[]> {
+/** The Skill's answer_check on any text that claims to rest on these tool results: the errors it reports. */
+export async function checkAnswer(answer: string, facts: unknown[]): Promise<Finding[]> {
   // answer_check exits non-zero when it finds errors, so read its report whatever the exit code.
-  const result = await runTool({
-    script: 'answer_check.py', argv: ['--stdin'],
-    stdin: JSON.stringify({ answer: [...model.first, ...model.conditions].join('\n'), facts: model.facts }),
-  });
+  const result = await runTool({ script: 'answer_check.py', argv: ['--stdin'], stdin: JSON.stringify({ answer, facts }) });
   const report = JSON.parse(result.stdout) as CheckReport;
   const errors = report.findings.filter((finding) => finding.severity === 'error');
   if (!report.passed && !errors.length) return [{ code: 'not_passed', severity: 'error' }];
   return errors;
 }
 
+/** Why a text was withheld, in answer_check's own words. */
+export function withheld(intro: string, errors: Finding[]): HTMLElement {
+  return h('div', { class: 'card-withheld', role: 'alert' },
+    h('p', {}, intro),
+    h('ul', {}, ...errors.map((error) => h('li', {}, [error.detail ?? error.code, error.excerpt && `「${error.excerpt}」`]
+      .filter(Boolean).join('：')))),
+  );
+}
+
 export async function renderCard(model: CardModel): Promise<HTMLElement> {
-  const errors = await check(model);
-  if (errors.length) {
-    return h('div', { class: 'card-withheld', role: 'alert' },
-      h('p', {}, '这张签没有通过自检，所以不显示。自检发现：'),
-      h('ul', {}, ...errors.map((error) => h('li', {}, [error.detail ?? error.code, error.excerpt && `「${error.excerpt}」`]
-        .filter(Boolean).join('：')))),
-    );
-  }
+  const errors = await checkAnswer([...model.first, ...model.conditions].join('\n'), model.facts);
+  if (errors.length) return withheld('这张签没有通过自检，所以不显示。自检发现：', errors);
   const shareSlot = h('div', { class: 'share-slot' });
   const openShare = () => (shareSlot.childElementCount ? shareSlot.replaceChildren() : shareSlot.replaceChildren(sharePanel({
     frame: 'frame-share', title: model.title, footer: `有据山寺 · ${skillVersion()}`, file: '有据山寺-签文.png',
@@ -65,6 +66,14 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
     lines: [{ text: `所问：${model.question}`, optional: { label: '分享图上写出所问之事', on: true } },
       ...model.share.map((text) => ({ text }))],
   })));
+  const followSlot = h('div', { class: 'share-slot' });
+  const openFollow = () => {
+    if (followSlot.childElementCount) {
+      followSlot.replaceChildren();
+      return;
+    }
+    void import('../followup/panel').then(({ followupPanel }) => followSlot.replaceChildren(followupPanel(model)));
+  };
   return h('article', { class: 'card', 'aria-label': '签文卡' },
     h('header', { class: 'card-head' },
       model.glyph ?? null,
@@ -86,8 +95,10 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
         location.hash = '#/xuyuan';
       } }, '就此事许个愿'),
       h('button', { type: 'button', class: 'chip', onclick: openShare }, '生成分享图'),
+      h('button', { type: 'button', class: 'chip', onclick: openFollow }, '追问'),
       h('span', { class: 'seal', 'data-testid': 'skill-mark' }, skillVersion())),
     shareSlot,
+    followSlot,
   );
 }
 

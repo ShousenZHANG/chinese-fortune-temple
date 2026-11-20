@@ -110,11 +110,14 @@ async function verifiedSource(name, commit, kept) {
 
 // 香客簿 picks a birthplace before Python has loaded, so the Skill's own city table is served as a plain file, taken
 // from the archive just verified rather than kept as a second copy.
-function extractCities() {
-  const entry = 'chinese-fortune/assets/cities_cn.json';
-  const files = unzipSync(readFileSync(join(OUT, archive)), { filter: (file) => file.name === entry });
-  if (!files[entry]) fail(`${archive} has no ${entry}`);
-  writeFileSync(join(OUT, 'cities_cn.json'), files[entry]);
+// SKILL.md is sent with a visitor's own-key follow-up question as the rules the model must keep.
+function extractServedFiles() {
+  const wanted = { 'chinese-fortune/assets/cities_cn.json': 'cities_cn.json', 'chinese-fortune/SKILL.md': 'SKILL.md' };
+  const files = unzipSync(readFileSync(join(OUT, archive)), { filter: (file) => file.name in wanted });
+  for (const [entry, name] of Object.entries(wanted)) {
+    if (!files[entry]) fail(`${archive} has no ${entry}`);
+    writeFileSync(join(OUT, name), files[entry]);
+  }
 }
 
 // The 缘起 page names the third-party packages the Skill runs with. They are read from the vendored wheels' own
@@ -135,7 +138,7 @@ async function main() {
   mkdirSync(OUT, { recursive: true });
   const kept = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
   const release = await verifiedRelease(kept);
-  extractCities();
+  extractServedFiles();
   const sources = {};
   for (const name of sourceSkills) sources[name] = await verifiedSource(name, release.commit, kept);
   writeFileSync(manifestPath, `${JSON.stringify({ ...release, sources, vendored: vendoredPackages() }, null, 2)}\n`);

@@ -471,6 +471,11 @@ textarea {
 .yuanqi-part p, .yuanqi-part ul { margin: 0; }
 .yuanqi-part td { white-space: normal; min-width: 8em; }
 
+.followup { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--wash); }
+.followup p { margin: 0; }
+.followup-answer { display: flex; flex-direction: column; gap: 0.5rem; }
+input[type="password"] { width: 100%; min-height: 2.75rem; padding: 0.4rem 0.75rem; border: 1.5px solid var(--ink-soft); border-radius: var(--radius); background: var(--paper-raised); }
+
 /* 香客簿 */
 .section-title { margin: 0; font: 400 var(--step-2)/1.3 var(--font-kai); letter-spacing: 0.1em; }
 .pilgrims { display: flex; flex-direction: column; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }

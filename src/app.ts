@@ -9,10 +9,11 @@ import { wenxinHall } from './halls/wenxin';
 import { xuyuanHall } from './halls/xuyuan';
 import { yuelaoHall } from './halls/yuelao';
 import { ziweiHall } from './halls/ziwei';
+import { shezhi } from './shezhi';
 import { xiangke } from './xiangke';
 import { yuanqi } from './yuanqi';
 
-const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, yuelao: yuelaoHall, ziwei: ziweiHall, huangli: huangliHall, wenxin: wenxinHall, xuyuan: xuyuanHall, xiangke, yuanqi };
+const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, yuelao: yuelaoHall, ziwei: ziweiHall, huangli: huangliHall, wenxin: wenxinHall, xuyuan: xuyuanHall, xiangke, yuanqi, shezhi };
 const BOUNDARY_KEY = 'temple.boundary-seen';
 
 function boundaryNote(): HTMLElement | null {
@@ -46,7 +47,8 @@ function siteTools(): HTMLElement {
   return h('div', { class: 'site-tools' },
     h('span', {}, '法名 ', name),
     h('button', { type: 'button', class: 'chip', onclick: () => { name.textContent = renameDharma(); } }, '换一个法名'),
-    mute);
+    mute,
+    h('a', { href: '#/shezhi' }, '追问设置'));
 }
 
 export function mountApp(root: HTMLElement): void {
