@@ -4,6 +4,7 @@
 // through the Skill's answer_check against the tool results it came from; a card with errors is withheld.
 import { h, type Child } from '../dom';
 import { rememberSource } from '../records/handoff';
+import { sharePanel } from '../share';
 import { runJson, runTool, skillVersion } from '../skill/session';
 
 export interface CardModel {
@@ -18,6 +19,8 @@ export interface CardModel {
   originals: Node;
   /** Tool results the first layer may be checked against. */
   facts: unknown[];
+  /** Sentences a share image may carry by default: never birth dates, hours or pillars (spec story 43). */
+  share: string[];
 }
 
 interface Finding {
@@ -53,6 +56,12 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
         .filter(Boolean).join('：')))),
     );
   }
+  const shareSlot = h('div', { class: 'share-slot' });
+  const openShare = () => (shareSlot.childElementCount ? shareSlot.replaceChildren() : shareSlot.replaceChildren(sharePanel({
+    frame: 'frame-share', title: model.title, footer: `有据山寺 · ${skillVersion()}`, file: '有据山寺-签文.png',
+    lines: [{ text: `所问：${model.question}`, optional: { label: '分享图上写出所问之事', on: true } },
+      ...model.share.map((text) => ({ text }))],
+  })));
   return h('article', { class: 'card', 'aria-label': '签文卡' },
     h('header', { class: 'card-head' },
       model.glyph ?? null,
@@ -73,7 +82,9 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
         rememberSource({ title: model.title, question: model.question });
         location.hash = '#/xuyuan';
       } }, '就此事许个愿'),
+      h('button', { type: 'button', class: 'chip', onclick: openShare }, '生成分享图'),
       h('span', { class: 'seal', 'data-testid': 'skill-mark' }, skillVersion())),
+    shareSlot,
   );
 }
 

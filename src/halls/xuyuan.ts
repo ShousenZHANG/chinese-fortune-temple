@@ -4,6 +4,7 @@
 import { artUrl, moonGate } from '../art';
 import { h } from '../dom';
 import { download } from '../download';
+import { sharePanel } from '../share';
 import { wishCalendar } from '../records/calendar';
 import { forgetSource, pendingSource } from '../records/handoff';
 import { confirmedTimezone, guessedTimezone, localMoment } from '../moment';
@@ -37,7 +38,13 @@ function returnCard(wish: Wish & { state: { status: 'fulfilled' } }, total: numb
     h('p', { class: 'return-title' }, `还愿：${OFFERINGS[wish.state.offering]}`),
     h('p', {}, `${wish.category}之愿，许于 ${wish.madeOn}，还于 ${wish.state.on}。`),
     h('p', { class: 'note' }, '这是仪式，不是推算，也不配古籍出处。'),
-    h('p', { class: 'note' }, `这是你在这里的第 ${total} 次还愿。`));
+    h('p', { class: 'note' }, `这是你在这里的第 ${total} 次还愿。`),
+    h('details', { class: 'share-details' }, h('summary', {}, '生成还愿分享图'), sharePanel({
+      frame: 'frame-wish', title: `还愿：${OFFERINGS[wish.state.offering]}`, footer: '有据山寺 · 许愿树', file: '有据山寺-还愿.png',
+      lines: [{ text: `${wish.category}之愿，已还愿` }, { text: `许于 ${wish.madeOn}，还于 ${wish.state.on}` },
+        { text: `心愿：${wish.text}`, optional: { label: '分享图上写出心愿原文', on: false } },
+        { text: '这是仪式，不是推算。' }],
+    })));
 }
 
 export function xuyuanHall(): HTMLElement {

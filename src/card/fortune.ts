@@ -94,6 +94,7 @@ export function fortuneCard(markdown: string, result: FortuneResult, title: stri
     originals: h('div', { class: 'layer-body' },
       citations(fortuneCites(result, [...lead, ...rest])) ?? h('p', {}, '这次没有引到原文。')),
     facts: [result],
+    share: [],
   };
 }
 
@@ -109,5 +110,6 @@ export function monthCard(result: MonthResult, title: string, question: string):
     originals: h('div', { class: 'layer-body' },
       h('p', {}, '整月日历只列事实，不引原文；按生年分等级之后，每条忌日和等级都附原文出处。')),
     facts: [result],
+    share: [],
   };
 }
