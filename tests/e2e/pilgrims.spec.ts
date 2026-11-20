@@ -20,13 +20,16 @@ async function addPilgrim(page: Page, person: {
 
 test('香客簿 keeps people on this device, exports them, clears them and imports them back', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: '香客簿' }).click();
+  await page.getByRole('region', { name: '中庭', exact: true }).getByRole('link', { name: '香客簿' }).click();
   await expect(page.getByTestId('pilgrim-empty')).toBeVisible();
 
   await page.getByLabel('出生地').fill('北京');
   await expect(page.getByTestId('city-facts')).toHaveText('北京：东经 116.4°，时区 Asia/Shanghai');
   await addPilgrim(page, { name: '阿甲', gender: '男', date: ['1990', '6', '12'], city: '北京' });
+  // Saving is asynchronous and clears the form when done; wait for it before typing the next person.
+  await expect(page.getByRole('status')).toHaveText('已存下「阿甲」。');
   await addPilgrim(page, { name: '阿乙', gender: '女', calendar: '农历', date: ['1992', '8', '22'], time: '08:30', city: '香港' });
+  await expect(page.getByRole('status')).toHaveText('已存下「阿乙」。');
 
   const rows = page.getByTestId('pilgrim');
   await expect(rows).toHaveCount(2);

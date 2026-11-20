@@ -14,7 +14,7 @@ test('six tosses of my own coins give the same reading as the Skill CLI', async 
   test.setTimeout(180_000);
   await page.clock.setFixedTime(new Date('2026-11-18T08:00:00Z'));
   await page.goto('/');
-  await page.getByRole('link', { name: /求签殿/ }).click();
+  await page.getByRole('region', { name: '中庭', exact: true }).getByRole('link', { name: /求签殿/ }).click();
 
   await page.getByRole('button', { name: '这次面试能不能过' }).click();
   await expect(page.getByTestId('cast-moment')).toContainText('2026-11-18 16:00');
