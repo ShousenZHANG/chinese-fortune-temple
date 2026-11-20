@@ -101,6 +101,28 @@
         "--stdin"
       ],
       "stdin": "{\"answer\": \"本卦风山渐，二、五爻动，变卦山风蛊。\", \"facts\": []}"
+    },
+    {
+      "id": "life-decide",
+      "skill": "life-guide",
+      "script": "life_guide.py",
+      "argv": [
+        "--decide",
+        "失业了先做什么",
+        "--current-timezone",
+        "Asia/Shanghai"
+      ]
+    },
+    {
+      "id": "life-emergency",
+      "skill": "life-guide",
+      "script": "life_guide.py",
+      "argv": [
+        "--decide",
+        "我胸口很痛喘不上气",
+        "--current-timezone",
+        "Asia/Shanghai"
+      ]
     }
   ]
 }
