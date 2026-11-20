@@ -175,6 +175,18 @@
       ]
     },
     {
+      "id": "life-decide-md",
+      "skill": "life-guide",
+      "script": "life_guide.py",
+      "argv": [
+        "--decide",
+        "失业了先做什么",
+        "--current-timezone",
+        "Asia/Shanghai",
+        "--markdown"
+      ]
+    },
+    {
       "id": "life-emergency",
       "skill": "life-guide",
       "script": "life_guide.py",
@@ -183,6 +195,18 @@
         "我胸口很痛喘不上气",
         "--current-timezone",
         "Asia/Shanghai"
+      ]
+    },
+    {
+      "id": "life-emergency-md",
+      "skill": "life-guide",
+      "script": "life_guide.py",
+      "argv": [
+        "--decide",
+        "我胸口很痛喘不上气",
+        "--current-timezone",
+        "Asia/Shanghai",
+        "--markdown"
       ]
     }
   ]
