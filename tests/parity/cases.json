@@ -1,0 +1,106 @@
+{
+  "note": "Each case runs once through the Skill's own Python CLI (reference) and once through the browser Worker; stdout must match byte for byte. All people are fictional; every time-dependent input is fixed.",
+  "cases": [
+    {
+      "id": "liuyao-interview",
+      "script": "liuyao_cast.py",
+      "argv": [
+        "coins",
+        "--lines",
+        "8,6,7,8,9,7",
+        "--date",
+        "2026-11-18",
+        "--time",
+        "16:00",
+        "--target-timezone",
+        "Asia/Shanghai",
+        "--question",
+        "这次面试能不能过"
+      ]
+    },
+    {
+      "id": "pair-xieji",
+      "script": "pair_facts.py",
+      "argv": [
+        "--stdin"
+      ],
+      "stdin": "{\"a\": {\"year\": 1990, \"month\": 6, \"day\": 12, \"gender\": \"male\", \"city\": \"北京\"}, \"b\": {\"year\": 1992, \"month\": 9, \"day\": 18, \"gender\": \"female\", \"city\": \"北京\"}, \"question\": \"请按《协纪辨方书》所载三元九宫合婚法演示\"}"
+    },
+    {
+      "id": "period-career",
+      "script": "fortune_reading.py",
+      "argv": [
+        "--stdin"
+      ],
+      "stdin": "{\"intent\": \"period\", \"question\": \"按八字分析2026年11月3日至11月9日事业运势，准备首次向主管提出内部转岗，选沟通日期\", \"request_time\": \"2026-11-02T18:00:00+08:00\", \"current_timezone\": \"Asia/Shanghai\", \"period\": {\"start\": \"2026-11-03T00:00:00+08:00\", \"end\": \"2026-11-10T00:00:00+08:00\"}, \"event\": {\"scenario\": \"内部转岗沟通\", \"timezone\": \"Asia/Shanghai\", \"time_standard\": \"clock\", \"sect\": 2}, \"participants\": [{\"id\": \"fictional\", \"confirmed\": true, \"person\": {\"birth\": {\"year\": 1989, \"month\": 12, \"day\": 3, \"hour\": 21, \"minute\": 25, \"gender\": \"female\", \"city\": \"常州\", \"timezone\": \"Asia/Shanghai\", \"time_standard\": \"clock\", \"sect\": 2}, \"time_certainty\": \"exact\"}}], \"granularity\": \"day\", \"include_natal_reading\": true, \"include_research\": true}"
+    },
+    {
+      "id": "month-moving",
+      "script": "huangli_query.py",
+      "argv": [
+        "--month",
+        "2026-12",
+        "--question",
+        "12月想搬家，12月哪几天比较好？",
+        "--person",
+        "我=1987-10-20"
+      ]
+    },
+    {
+      "id": "ziwei-career-leap",
+      "script": "ziwei_calc.py",
+      "argv": [
+        "--year",
+        "2001",
+        "--month",
+        "5",
+        "--day",
+        "26",
+        "--hour",
+        "19",
+        "--minute",
+        "10",
+        "--gender",
+        "male",
+        "--timezone",
+        "Asia/Shanghai",
+        "--time-standard",
+        "clock",
+        "--focus-palace",
+        "官禄"
+      ]
+    },
+    {
+      "id": "router-emergency",
+      "script": "question_router.py",
+      "argv": [
+        "--question",
+        "我胸口很痛喘不上气怎么办"
+      ]
+    },
+    {
+      "id": "router-life",
+      "script": "question_router.py",
+      "argv": [
+        "--question",
+        "失业了先做什么"
+      ]
+    },
+    {
+      "id": "passage",
+      "script": "classical_search.py",
+      "argv": [
+        "--passage-id",
+        "ziwei:c001:p0021"
+      ]
+    },
+    {
+      "id": "answer-check",
+      "script": "answer_check.py",
+      "argv": [
+        "--stdin"
+      ],
+      "stdin": "{\"answer\": \"本卦风山渐，二、五爻动，变卦山风蛊。\", \"facts\": []}"
+    }
+  ]
+}
