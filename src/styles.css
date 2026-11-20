@@ -12,6 +12,8 @@
   --gamboge: #e9b949;
   --stone: #3f6e8c;
   --radius: 12px;
+  --art-filter: brightness(1);
+  --grain-blend: normal;
   --font-kai: "Kaiti SC", "STKaiti", "KaiTi", "楷体", "BiauKai", "Noto Serif SC", "Songti SC", serif;
   --font-song: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif;
   --font-ui: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
@@ -34,6 +36,8 @@
     --cinnabar: #e2705a;
     --gamboge: #f0c468;
     --stone: #8db6cf;
+    --art-filter: brightness(0.86);
+    --grain-blend: multiply;
     color-scheme: dark;
   }
 }
@@ -51,7 +55,11 @@ body {
   padding-block: 1.5rem 2rem;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--gamboge) 22%, transparent), transparent 16rem) var(--paper);
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--gamboge) 22%, transparent), transparent 16rem),
+    url("/art/paper.webp") 0 0 / 512px repeat;
+  background-color: var(--paper);
+  background-blend-mode: normal, var(--grain-blend);
   color: var(--ink);
   font: var(--step-0)/1.7 var(--font-ui);
 }
@@ -108,6 +116,66 @@ input[type="text"], select {
 .row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.75rem; }
 
 /* Courtyard */
+.court-view { display: flex; flex-direction: column; gap: 2rem; }
+
+.panorama { margin: 0; }
+.panorama-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 21 / 9;
+  object-fit: cover;
+  object-position: 50% 80%;
+  border-radius: var(--radius);
+  filter: var(--art-filter);
+}
+.guide {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin: -5.5rem 0 0 clamp(0.25rem, 3vw, 2rem);
+}
+.monk { flex: none; width: auto; height: 8.5rem; filter: var(--art-filter); }
+.say {
+  position: relative;
+  margin: 0 0 0.5rem;
+  padding: 0.55rem 1rem;
+  max-width: 20em;
+  background: var(--paper-raised);
+  border: 1.5px solid var(--ink);
+  border-radius: var(--radius);
+  font: var(--step-1)/1.6 var(--font-kai);
+}
+.say::before {
+  content: "";
+  position: absolute;
+  left: -0.45rem;
+  bottom: 1rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  background: inherit;
+  border: inherit;
+  border-width: 0 0 1.5px 1.5px;
+  border-radius: 0 0 0 3px;
+  transform: rotate(45deg);
+}
+
+.moon {
+  display: block;
+  flex: none;
+  width: min(10rem, 100%);
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 0.4rem solid var(--paper);
+  box-shadow: 0 0 0 1.5px var(--wash);
+  filter: var(--art-filter);
+}
+.closed .moon { filter: var(--art-filter) saturate(0.4); opacity: 0.85; }
+.at-qiuqian .moon { box-shadow: 0 0 0 2px var(--cinnabar); }
+
 .court {
   position: relative;
   display: grid;
@@ -166,13 +234,19 @@ a.hall-tile:hover { border-color: var(--cinnabar); }
   letter-spacing: 0.25em;
 }
 .plaque.small { font-size: var(--step-1); }
+.label { display: flex; align-items: flex-start; gap: 0.9rem; text-align: left; }
 .does { max-width: 16em; font-size: var(--step--1); }
 .later { display: block; margin-top: 0.25rem; font-size: 0.8rem; }
 
 @media (max-width: 760px) {
+  .panorama-img { aspect-ratio: 3 / 2; }
+  .guide { margin-top: -3.5rem; }
+  .monk { height: 6.5rem; }
+  .say { font-size: var(--step-0); }
   .court { grid-template-columns: 1fr; grid-template-areas: none; }
-  .court::before { left: 2.1rem; }
+  .court::before { left: calc(1rem + 2.75rem); }
   .court > * { grid-area: auto; flex-direction: row; text-align: left; }
+  .moon { width: 5.5rem; border-width: 0.25rem; }
   .gate { order: -1; }
   .at-qiuqian { order: 0; }
 }
@@ -180,6 +254,8 @@ a.hall-tile:hover { border-color: var(--cinnabar); }
 /* Hall */
 .hall { display: flex; flex-direction: column; gap: 1.5rem; max-width: 42rem; }
 .back { align-self: flex-start; }
+.hall-head { display: flex; align-items: center; gap: 1rem; }
+.hall-head .moon { width: 5rem; border-width: 0.25rem; }
 .hall-title { margin: 0; font: 400 var(--step-3)/1.2 var(--font-kai); letter-spacing: 0.2em; }
 .lede { margin: -0.75rem 0 0; color: var(--ink-soft); max-width: 34em; }
 .step { display: flex; flex-direction: column; gap: 0.6rem; }

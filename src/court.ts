@@ -1,9 +1,10 @@
 // 中庭, laid out like a temple plan: 紫微殿 at the back of the axis, 求签殿 in the middle, the gate at the front,
 // side halls on either hand. Halls that are not built yet say so instead of linking nowhere.
+import { courtyard, guideMonk, moonGate, type HallId } from './art';
 import { h } from './dom';
 
 interface Hall {
-  id: string;
+  id: HallId;
   name: string;
   does: string;
   open: boolean;
@@ -20,20 +21,36 @@ const HALLS: Hall[] = [
 
 function hallTile(hall: Hall): HTMLElement {
   const body = [
-    h('span', { class: 'plaque' }, hall.name),
-    h('span', { class: 'does' }, hall.does, hall.open ? null : h('span', { class: 'later' }, '后续开放')),
+    moonGate(hall.id),
+    h('span', { class: 'label' },
+      h('span', { class: 'plaque' }, hall.name),
+      h('span', { class: 'does' }, hall.does, hall.open ? null : h('span', { class: 'later' }, '后续开放')),
+    ),
   ];
   return hall.open
     ? h('a', { class: `hall-tile at-${hall.id}`, href: `#/${hall.id}` }, ...body)
     : h('div', { class: `hall-tile at-${hall.id} closed`, 'aria-disabled': 'true' }, ...body);
 }
 
+function panorama(): HTMLElement {
+  return h('figure', { class: 'panorama' },
+    courtyard(),
+    h('figcaption', { class: 'guide', 'data-testid': 'guide' },
+      guideMonk(),
+      h('p', { class: 'say' }, '想问哪件事，就进哪座殿。求签殿已经开门，其余几座还在修。'),
+    ),
+  );
+}
+
 export function court(): HTMLElement {
-  return h('section', { class: 'court', 'aria-label': '中庭' },
-    ...HALLS.map(hallTile),
-    h('div', { class: 'gate' },
-      h('span', { class: 'plaque small' }, '山门'),
-      h('p', {}, '不用注册。出生资料和心愿只存在这台设备上。'),
+  return h('div', { class: 'court-view' },
+    panorama(),
+    h('section', { class: 'court', 'aria-label': '中庭' },
+      ...HALLS.map(hallTile),
+      h('div', { class: 'gate' },
+        h('span', { class: 'plaque small' }, '山门'),
+        h('p', {}, '不用注册。出生资料和心愿只存在这台设备上。'),
+      ),
     ),
   );
 }
