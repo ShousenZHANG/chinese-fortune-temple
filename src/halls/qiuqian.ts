@@ -1,6 +1,7 @@
 // 求签殿: the visitor writes one question, confirms the time zone, and tosses three coins six times.
 // A toss made here is recorded at once; with their own coins they set each face and record it. No toss can be
 // taken back, because the Skill forbids drawing again for a preferred hexagram (references/04-liuyao.md).
+import { moonGate } from '../art';
 import { liuyaoCard, type LiuyaoResult } from '../card/liuyao';
 import { renderCard } from '../card/card';
 import { h } from '../dom';
@@ -103,7 +104,7 @@ export function qiuqianHall(): HTMLElement {
 
   return h('section', { class: 'hall', 'aria-labelledby': 'hall-title' },
     h('a', { class: 'back', href: '#/' }, '回中庭'),
-    h('h2', { id: 'hall-title', class: 'hall-title' }, '求签殿'),
+    h('div', { class: 'hall-head' }, moonGate('qiuqian'), h('h2', { id: 'hall-title', class: 'hall-title' }, '求签殿')),
     h('p', { class: 'lede' }, '想好一件具体的事，掷三枚铜钱六次。每一次是一爻，从下往上排。'),
     h('div', { class: 'step' },
       h('label', { for: 'question' }, '所问之事'),
