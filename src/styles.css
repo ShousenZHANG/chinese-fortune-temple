@@ -583,3 +583,4 @@ td.visual { font-family: var(--font-code); white-space: pre; }
 /* English interface: names read across, not down. */
 :root[lang="en"] .plaque { writing-mode: horizontal-tb; letter-spacing: 0.04em; font-size: var(--step-1); }
 :root[lang="en"] .spot { letter-spacing: 0.02em; }
+:root[lang="en"] .hall-title, :root[lang="en"] .section-title, :root[lang="en"] .card-title { letter-spacing: 0.02em; }

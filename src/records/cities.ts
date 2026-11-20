@@ -1,4 +1,6 @@
 // The Skill's city table (assets/cities_cn.json), served by the build from the verified archive.
+import { tr } from '../i18n';
+
 export interface City {
   name: string;
   province: string;
@@ -23,4 +25,5 @@ export function cities(): Promise<Map<string, City>> {
   return table;
 }
 
-export const cityFacts = (city: City): string => `${city.name}：东经 ${city.lon}°，时区 ${city.tz}`;
+export const cityFacts = (city: City): string =>
+  tr(`${city.name}：东经 ${city.lon}°，时区 ${city.tz}`, `${city.name}: ${city.lon}°E, time zone ${city.tz}`);

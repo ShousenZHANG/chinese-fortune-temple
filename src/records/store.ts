@@ -1,5 +1,6 @@
 // 香客簿 and 愿望簿 in IndexedDB. The database version is the index into MIGRATIONS: opening at a higher version runs
 // every step the stored copy has not seen yet, so adding a store never touches what is already kept.
+import { tr } from '../i18n';
 import { InvalidRecord, parsePilgrim, type Pilgrim } from './pilgrim';
 import { parseWish, type Wish } from './wish';
 
@@ -85,7 +86,7 @@ function each<T>(raw: unknown[], what: string, parse: (item: unknown) => T): T[]
     try {
       return parse(item);
     } catch (error) {
-      throw error instanceof InvalidRecord ? new InvalidRecord(`${what}第 ${i + 1} 条：${error.message}`) : error;
+      throw error instanceof InvalidRecord ? new InvalidRecord(tr(`${what}第 ${i + 1} 条：${error.message}`, `${what} ${i + 1}: ${error.message}`)) : error;
     }
   });
 }
@@ -100,15 +101,15 @@ export function parseBackup(text: string, knownCity: (name: string) => boolean):
   }
   const value = raw as { format?: unknown; version?: unknown; exportedAt?: unknown; pilgrims?: unknown; wishes?: unknown } | null;
   if (value?.format !== BACKUP_FORMAT || !Array.isArray(value.pilgrims)) {
-    throw new InvalidRecord('这个文件不是有据山寺导出的香客簿文件。');
+    throw new InvalidRecord(tr('这个文件不是有据山寺导出的香客簿文件。', 'This file is not a Pilgrim Book exported from Chinese Fortune Temple.'));
   }
   if (value.version !== 1 && value.version !== BACKUP_VERSION) {
-    throw new InvalidRecord(`文件版本 ${String(value.version)} 认不出，请用新版页面导出。`);
+    throw new InvalidRecord(tr(`文件版本 ${String(value.version)} 认不出，请用新版页面导出。`, `File version ${String(value.version)} is not recognised; export it again from the current site.`));
   }
   const wishes = value.version === 1 ? [] : value.wishes;
-  if (!Array.isArray(wishes)) throw new InvalidRecord('文件里的愿望簿读不出来。');
+  if (!Array.isArray(wishes)) throw new InvalidRecord(tr('文件里的愿望簿读不出来。', 'The Wish Book in this file cannot be read.'));
   return { format: BACKUP_FORMAT, version: BACKUP_VERSION, exportedAt: String(value.exportedAt ?? ''),
-    pilgrims: each(value.pilgrims, '香客', (p) => parsePilgrim(p, knownCity)), wishes: each(wishes, '愿望', parseWish) };
+    pilgrims: each(value.pilgrims, tr('香客', 'Person'), (p) => parsePilgrim(p, knownCity)), wishes: each(wishes, tr('愿望', 'Wish'), parseWish) };
 }
 
 /** Adds or replaces each record by id in one transaction, so importing the same file twice changes nothing. */

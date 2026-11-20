@@ -5,6 +5,7 @@ import { moonGate } from '../art';
 import { liuyaoCard, type LiuyaoResult } from '../card/liuyao';
 import { renderCard } from '../card/card';
 import { h } from '../dom';
+import { tr } from '../i18n';
 import { lineName, positionName, stroke } from '../glyph';
 import { guessedTimezone, localMoment } from '../moment';
 import { runJson, ToolFailed } from '../skill/session';
@@ -24,28 +25,28 @@ export function qiuqianHall(): HTMLElement {
   let lines: number[] = [];
 
   const question = h('input', { id: 'question', type: 'text', maxlength: String(MAX_QUESTION), autocomplete: 'off',
-    placeholder: '例如：这次面试能不能过' });
+    placeholder: tr('例如：这次面试能不能过', 'For example: 这次面试能不能过 (write in Chinese for the Skill)') });
   const zone = zoneStep('起卦', () => refresh());
-  const coins = ORDINALS.map((ordinal, i) => h('button', { type: 'button', class: 'coin', 'aria-label': `第${ordinal}枚铜钱`,
-    'aria-pressed': 'false', onclick: () => setFace(i, !backs[i]) }, '字'));
-  const tossHere = h('button', { type: 'button', class: 'primary', onclick: () => record(randomBacks(), true) }, '掷一次');
-  const tossOwn = h('button', { type: 'button', onclick: () => record(backs, false) }, '照这样记下');
+  const coins = ORDINALS.map((ordinal, i) => h('button', { type: 'button', class: 'coin', 'aria-label': tr(`第${ordinal}枚铜钱`, `Coin ${i + 1}`),
+    'aria-pressed': 'false', onclick: () => setFace(i, !backs[i]) }, tr('字', 'Face')));
+  const tossHere = h('button', { type: 'button', class: 'primary', onclick: () => record(randomBacks(), true) }, tr('掷一次', 'Toss once'));
+  const tossOwn = h('button', { type: 'button', onclick: () => record(backs, false) }, tr('照这样记下', 'Record as set'));
   const hint = h('p', { class: 'hint', 'aria-live': 'polite' });
-  const recorded = h('ol', { class: 'recorded', 'aria-label': '已记下的爻（自下而上）' });
+  const recorded = h('ol', { class: 'recorded', 'aria-label': tr('已记下的爻（自下而上）', 'Recorded lines (bottom to top)') });
   const outcome = h('div', { class: 'outcome', 'aria-live': 'polite' });
 
   function setFace(i: number, back: boolean) {
     backs = backs.map((value, j) => (j === i ? back : value));
     coins[i].setAttribute('aria-pressed', String(back));
-    coins[i].textContent = back ? '背' : '字';
+    coins[i].textContent = back ? tr('背', 'Back') : tr('字', 'Face');
   }
 
   function refresh() {
     const done = lines.length === 6;
-    const blocked = done ? '' : !question.value.trim() ? '先写下所问之事。' : !zone.zone() ? '先确认时区。' : '';
+    const blocked = done ? '' : !question.value.trim() ? tr('先写下所问之事。', 'Write down your question first.') : !zone.zone() ? tr('先确认时区。', 'Confirm the time zone first.') : '';
     for (const button of [tossHere, tossOwn, ...coins]) button.disabled = done || Boolean(blocked);
     question.readOnly = lines.length > 0;
-    hint.textContent = blocked || (done ? '' : `还要掷 ${6 - lines.length} 次。`);
+    hint.textContent = blocked || (done ? '' : tr(`还要掷 ${6 - lines.length} 次。`, `${6 - lines.length} tosses to go.`));
   }
 
   function record(faces: boolean[], animate: boolean) {
@@ -64,13 +65,13 @@ export function qiuqianHall(): HTMLElement {
   async function cast() {
     const timezone = zone.zone() ?? guessedTimezone();
     const now = localMoment(timezone);
-    outcome.replaceChildren(h('p', { class: 'status' }, '正在起卦，第一次要等算法包加载完…'));
+    outcome.replaceChildren(h('p', { class: 'status' }, tr('正在起卦，第一次要等算法包加载完…', 'Casting. The first time waits for the Skill to load…')));
     try {
       const result = await runJson<LiuyaoResult>({ script: 'liuyao_cast.py', argv: ['coins', '--lines', lines.join(','),
         '--date', now.date, '--time', now.time, '--target-timezone', timezone, '--question', question.value.trim()] });
       outcome.replaceChildren(await renderCard(liuyaoCard(result)));
     } catch (error) {
-      const message = error instanceof ToolFailed ? error.message : '算法包运行出错，请刷新页面再试。';
+      const message = error instanceof ToolFailed ? error.message : tr('算法包运行出错，请刷新页面再试。', 'The Skill ran into an error. Please refresh the page.');
       outcome.replaceChildren(h('p', { class: 'status error', role: 'alert' }, message));
     }
   }
@@ -79,11 +80,11 @@ export function qiuqianHall(): HTMLElement {
   refresh();
 
   return h('section', { class: 'hall', 'aria-labelledby': 'hall-title' },
-    h('a', { class: 'back', href: '#/' }, '回中庭'),
-    h('div', { class: 'hall-head' }, moonGate('qiuqian'), h('h2', { id: 'hall-title', class: 'hall-title' }, '求签殿')),
-    h('p', { class: 'lede' }, '想好一件具体的事，掷三枚铜钱六次。每一次是一爻，从下往上排。'),
+    h('a', { class: 'back', href: '#/' }, tr('回中庭', 'Back to the courtyard')),
+    h('div', { class: 'hall-head' }, moonGate('qiuqian'), h('h2', { id: 'hall-title', class: 'hall-title' }, tr('求签殿', 'Coin Hall'))),
+    h('p', { class: 'lede' }, tr('想好一件具体的事，掷三枚铜钱六次。每一次是一爻，从下往上排。', 'Think of one specific matter and toss three coins six times. Each toss is one line, stacked from the bottom up.')),
     h('div', { class: 'step' },
-      h('label', { for: 'question' }, '所问之事'),
+      h('label', { for: 'question' }, tr('所问之事', 'Your question')),
       question,
       h('div', { class: 'row presets' }, ...PRESETS.map((text) => h('button', { type: 'button', class: 'chip', onclick: () => {
         if (question.readOnly) return;
@@ -94,7 +95,7 @@ export function qiuqianHall(): HTMLElement {
     zone.element,
     h('div', { class: 'step toss' },
       h('div', { class: 'coins' }, ...coins),
-      h('p', { class: 'hint' }, '一背为少阳，两背为少阴，三背为老阳，三字为老阴。用自己的铜钱掷时，点铜钱照落地的样子翻面，再点「照这样记下」。记下的爻不能撤回。'),
+      h('p', { class: 'hint' }, tr('一背为少阳，两背为少阴，三背为老阳，三字为老阴。用自己的铜钱掷时，点铜钱照落地的样子翻面，再点「照这样记下」。记下的爻不能撤回。', 'One back is young yang, two backs young yin, three backs old yang, three faces old yin. With your own coins, tap each coin to match how it landed, then Record as set. A recorded line cannot be taken back.')),
       h('div', { class: 'row' }, tossHere, tossOwn),
       hint,
       recorded,
