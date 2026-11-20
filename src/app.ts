@@ -2,8 +2,9 @@
 import { court } from './court';
 import { h } from './dom';
 import { qiuqianHall } from './halls/qiuqian';
+import { xiangke } from './xiangke';
 
-const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall };
+const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, xiangke };
 const BOUNDARY_KEY = 'temple.boundary-seen';
 
 function boundaryNote(): HTMLElement | null {
