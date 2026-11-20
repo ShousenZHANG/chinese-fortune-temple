@@ -8,7 +8,7 @@
   "scripts": {
     "fetch-skill": "node scripts/fetch-skill.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.node.json",
-    "build": "npm run fetch-skill && npm run copy-pyodide && npm run typecheck && vite build",
+    "build": "npm run fetch-skill && npm run copy-pyodide && npm run typecheck && vite build && node scripts/build-sw.mjs",
     "dev": "vite",
     "preview": "vite preview --host 127.0.0.1 --port 4780 --strictPort",
     "test:e2e": "npm run parity-reference && playwright test",

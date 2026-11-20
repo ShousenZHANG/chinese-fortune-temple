@@ -43,4 +43,17 @@ async function start(): Promise<void> {
   }
 }
 
+// Stories 8, 9: the service worker caches the whole site, so a second visit opens at once and works offline.
+// `ready` resolves once a worker is active, which is after its install has cached every file.
+function registerOffline(): void {
+  if (!import.meta.env.PROD || !('serviceWorker' in navigator)) return;
+  const label = document.querySelector<HTMLElement>('[data-testid="offline-ready"]');
+  const show = () => { if (label) label.textContent = tr('已缓存，断网也能用', 'Cached: works offline'); };
+  navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).then(() => navigator.serviceWorker.ready).then(() => {
+    show();
+    window.addEventListener(LANG_EVENT, show);
+  }).catch(() => undefined);
+}
+
 void start();
+registerOffline();
