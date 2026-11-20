@@ -2,7 +2,7 @@
 // loads, and any time after. Counts stay in this browser; knocks are not merit, which only 还愿 records.
 import { artUrl } from './art';
 import { h } from './dom';
-import { bead, bell, knock } from './sound';
+import { AMBIENT_EVENT, ambientOn, bead, bell, knock, muted, startAmbient, stopAmbient } from './sound';
 
 const BEADS = 108;
 
@@ -58,9 +58,17 @@ export function zen(onBow: () => void): HTMLElement {
     h('div', { class: 'zen-item' }, tool('撞钟', 'bell.webp', bell)),
     h('div', { class: 'zen-item' }, tool('合掌', 'monk-greet.webp', onBow)),
   ];
+  const ambient = h('button', { type: 'button', class: 'chip', 'aria-pressed': String(ambientOn()) }, '环境声：风声和诵经');
+  ambient.addEventListener('click', () => {
+    if (ambientOn()) stopAmbient();
+    else if (!startAmbient()) note.textContent = muted() ? '现在是静音，先在页面顶部关掉静音。' : '这个浏览器放不了声音。';
+  });
+  window.addEventListener(AMBIENT_EVENT, (event) => {
+    ambient.setAttribute('aria-pressed', String((event as CustomEvent<boolean>).detail));
+  });
   show();
   return h('section', { class: 'zen', 'aria-label': '禅台' },
     h('h3', { class: 'section-title' }, '禅台'),
     h('p', { class: 'hint' }, '不求签也可以坐一会儿。第一次进门时算法包要加载十几秒，可以先在这里敲敲木鱼。'),
-    h('div', { class: 'zen-tools' }, ...tools), note);
+    h('div', { class: 'zen-tools' }, ...tools), h('div', { class: 'row' }, ambient), note);
 }

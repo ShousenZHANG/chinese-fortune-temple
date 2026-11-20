@@ -41,3 +41,19 @@ test('one switch mutes every sound and is remembered', async ({ page }) => {
   await page.reload();
   await expect(mute).toHaveAttribute('aria-pressed', 'true');
 });
+
+test('wind and chanting play on request, and the mute switch stops them', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  const ambient = page.getByRole('button', { name: '环境声：风声和诵经' });
+  await expect(ambient).toHaveAttribute('aria-pressed', 'false');
+  await ambient.click();
+  await expect(ambient).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: '静音' }).click();
+  await expect(ambient).toHaveAttribute('aria-pressed', 'false');
+  await ambient.click();
+  await expect(ambient).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByRole('region', { name: '禅台' })).toContainText('现在是静音');
+  expect(errors).toEqual([]);
+});

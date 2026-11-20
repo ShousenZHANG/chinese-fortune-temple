@@ -208,6 +208,27 @@
         "Asia/Shanghai",
         "--markdown"
       ]
+    },
+    {
+      "id": "daily-cast",
+      "script": "yijing_cast.py",
+      "argv": [
+        "coins",
+        "--seed",
+        "12345",
+        "--question",
+        "每日一签"
+      ]
+    },
+    {
+      "id": "daily-lin",
+      "script": "yilin_lookup.py",
+      "argv": [
+        "--from",
+        "观",
+        "--to",
+        "观"
+      ]
     }
   ]
 }
