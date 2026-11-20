@@ -50,6 +50,7 @@ export function court(): HTMLElement {
       h('div', { class: 'gate' },
         h('span', { class: 'plaque small' }, '山门'),
         h('p', {}, '不用注册。出生资料和心愿只存在这台设备上。'),
+        h('a', { class: 'gate-link', href: '#/xiangke' }, '香客簿'),
       ),
     ),
   );

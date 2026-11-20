@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { unzipSync } from 'fflate';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'public', 'skill');
@@ -107,10 +108,20 @@ async function verifiedSource(name, commit, kept) {
   return { commit, files: files.sort((a, b) => a.path.localeCompare(b.path)) };
 }
 
+// 香客簿 picks a birthplace before Python has loaded, so the Skill's own city table is served as a plain file, taken
+// from the archive just verified rather than kept as a second copy.
+function extractCities() {
+  const entry = 'chinese-fortune/assets/cities_cn.json';
+  const files = unzipSync(readFileSync(join(OUT, archive)), { filter: (file) => file.name === entry });
+  if (!files[entry]) fail(`${archive} has no ${entry}`);
+  writeFileSync(join(OUT, 'cities_cn.json'), files[entry]);
+}
+
 async function main() {
   mkdirSync(OUT, { recursive: true });
   const kept = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
   const release = await verifiedRelease(kept);
+  extractCities();
   const sources = {};
   for (const name of sourceSkills) sources[name] = await verifiedSource(name, release.commit, kept);
   writeFileSync(manifestPath, `${JSON.stringify({ ...release, sources }, null, 2)}\n`);
