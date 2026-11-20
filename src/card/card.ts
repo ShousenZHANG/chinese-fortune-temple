@@ -21,6 +21,8 @@ export interface CardModel {
   facts: unknown[];
   /** Sentences a share image may carry by default: never birth dates, hours or pillars (spec story 43). */
   share: string[];
+  /** Liuyao line values, drawn as the hexagram on the share image. */
+  strokes?: number[];
 }
 
 interface Finding {
@@ -59,6 +61,7 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
   const shareSlot = h('div', { class: 'share-slot' });
   const openShare = () => (shareSlot.childElementCount ? shareSlot.replaceChildren() : shareSlot.replaceChildren(sharePanel({
     frame: 'frame-share', title: model.title, footer: `有据山寺 · ${skillVersion()}`, file: '有据山寺-签文.png',
+    strokes: model.strokes,
     lines: [{ text: `所问：${model.question}`, optional: { label: '分享图上写出所问之事', on: true } },
       ...model.share.map((text) => ({ text }))],
   })));

@@ -16,6 +16,8 @@ export interface ShareSpec {
   lines: ShareLine[];
   footer: string;
   file: string;
+  /** Liuyao line values (6–9) to draw as a hexagram under the title. */
+  strokes?: number[];
 }
 
 const WIDTH = 1024;
@@ -49,6 +51,33 @@ function wrap(ctx: CanvasRenderingContext2D, text: string, width: number): strin
   return line ? [...lines, line] : lines;
 }
 
+const TITLE = { size: 76, lead: 96 };
+const BODY = { size: 40, lead: 62, gap: 22 };
+const STROKE = { width: 300, height: 26, gap: 18, split: 44 };
+const FOOTER_SPACE = 90;
+
+/** Six lines bottom to top, as a hexagram is built; a broken line for yin, a cinnabar dot beside a moving line. */
+function hexagram(ctx: CanvasRenderingContext2D, values: number[], left: number, top: number): number {
+  const height = values.length * STROKE.height + (values.length - 1) * STROKE.gap;
+  values.forEach((value, i) => {
+    const y = top + height - (i + 1) * STROKE.height - i * STROKE.gap;
+    ctx.fillStyle = INK;
+    if (value % 2) ctx.fillRect(left, y, STROKE.width, STROKE.height);
+    else {
+      const half = (STROKE.width - STROKE.split) / 2;
+      ctx.fillRect(left, y, half, STROKE.height);
+      ctx.fillRect(left + half + STROKE.split, y, half, STROKE.height);
+    }
+    if (value === 6 || value === 9) {
+      ctx.fillStyle = CINNABAR;
+      ctx.beginPath();
+      ctx.arc(left + STROKE.width + 34, y + STROKE.height / 2, 9, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  });
+  return height;
+}
+
 async function draw(spec: ShareSpec, lines: string[]): Promise<HTMLCanvasElement> {
   const canvas = document.createElement('canvas');
   canvas.width = WIDTH;
@@ -57,26 +86,41 @@ async function draw(spec: ShareSpec, lines: string[]): Promise<HTMLCanvasElement
   if (!ctx) throw new Error('canvas 2d is unavailable');
   ctx.drawImage(await loadImage(artUrl(`${spec.frame}.webp`)), 0, 0, WIDTH, HEIGHT);
   const width = AREA.right - AREA.left;
-  let y = AREA.top;
-  ctx.fillStyle = INK;
+  ctx.font = `${TITLE.size}px ${KAI}`;
+  const titleRows = wrap(ctx, spec.title, width);
+  ctx.font = `${BODY.size}px ${SONG}`;
+  const bodyRows = lines.map((text) => wrap(ctx, text, width));
+  const strokes = spec.strokes ?? [];
+  const hexHeight = strokes.length ? strokes.length * STROKE.height + (strokes.length - 1) * STROKE.gap + 56 : 0;
+  const block = titleRows.length * TITLE.lead + 44 + hexHeight
+    + bodyRows.reduce((sum, rows) => sum + rows.length * BODY.lead + BODY.gap, 0);
+  const room = AREA.bottom - FOOTER_SPACE - AREA.top;
+  // Sit a little above centre, where the eye rests on a tall card.
+  let y = AREA.top + Math.max(0, (room - block) * 0.38);
+
   ctx.textBaseline = 'top';
-  ctx.font = `64px ${KAI}`;
-  for (const row of wrap(ctx, spec.title, width)) {
+  ctx.fillStyle = INK;
+  ctx.font = `${TITLE.size}px ${KAI}`;
+  for (const row of titleRows) {
     ctx.fillText(row, AREA.left, y);
-    y += 84;
-  }
-  y += 24;
-  ctx.font = `36px ${SONG}`;
-  for (const text of lines) {
-    for (const row of wrap(ctx, text, width)) {
-      if (y + 48 > AREA.bottom - 80) break;
-      ctx.fillText(row, AREA.left, y);
-      y += 56;
-    }
-    y += 20;
+    y += TITLE.lead;
   }
   ctx.fillStyle = CINNABAR;
-  ctx.font = `28px ${SONG}`;
+  ctx.fillRect(AREA.left, y + 4, 96, 4);
+  y += 44;
+  if (strokes.length) y += hexagram(ctx, strokes, AREA.left, y) + 56;
+  ctx.fillStyle = INK;
+  ctx.font = `${BODY.size}px ${SONG}`;
+  for (const rows of bodyRows) {
+    for (const row of rows) {
+      if (y + BODY.size > AREA.bottom - FOOTER_SPACE) break;
+      ctx.fillText(row, AREA.left, y);
+      y += BODY.lead;
+    }
+    y += BODY.gap;
+  }
+  ctx.fillStyle = CINNABAR;
+  ctx.font = `30px ${SONG}`;
   ctx.fillText(spec.footer, AREA.left, AREA.bottom - 40);
   return canvas;
 }
