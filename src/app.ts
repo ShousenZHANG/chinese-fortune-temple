@@ -1,12 +1,13 @@
 // Hash routes, one view at a time. The boundary note is shown once for the whole visit history (spec story 42).
 import { court } from './court';
 import { h } from './dom';
+import { huangliHall } from './halls/huangli';
 import { qiuqianHall } from './halls/qiuqian';
 import { yuelaoHall } from './halls/yuelao';
 import { ziweiHall } from './halls/ziwei';
 import { xiangke } from './xiangke';
 
-const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, yuelao: yuelaoHall, ziwei: ziweiHall, xiangke };
+const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, yuelao: yuelaoHall, ziwei: ziweiHall, huangli: huangliHall, xiangke };
 const BOUNDARY_KEY = 'temple.boundary-seen';
 
 function boundaryNote(): HTMLElement | null {

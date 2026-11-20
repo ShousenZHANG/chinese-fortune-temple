@@ -6,8 +6,9 @@ import { liuyaoCard, type LiuyaoResult } from '../card/liuyao';
 import { renderCard } from '../card/card';
 import { h } from '../dom';
 import { lineName, positionName, stroke } from '../glyph';
-import { confirmedTimezone, confirmTimezone, guessedTimezone, localMoment, timezones } from '../moment';
+import { guessedTimezone, localMoment } from '../moment';
 import { runJson, ToolFailed } from '../skill/session';
+import { zoneStep } from '../zone';
 
 const PRESETS = ['这次面试能不能过', '这次考试能不能过', '这段感情能不能成', '押金能不能退回来'];
 const ORDINALS = ['一', '二', '三'];
@@ -19,14 +20,12 @@ function randomBacks(): boolean[] {
 }
 
 export function qiuqianHall(): HTMLElement {
-  let timezone = confirmedTimezone();
   let backs = [false, false, false];
   let lines: number[] = [];
 
   const question = h('input', { id: 'question', type: 'text', maxlength: String(MAX_QUESTION), autocomplete: 'off',
     placeholder: '例如：这次面试能不能过' });
-  const moment = h('p', { 'data-testid': 'cast-moment' });
-  const zoneActions = h('div', { class: 'row' });
+  const zone = zoneStep('起卦', () => refresh());
   const coins = ORDINALS.map((ordinal, i) => h('button', { type: 'button', class: 'coin', 'aria-label': `第${ordinal}枚铜钱`,
     'aria-pressed': 'false', onclick: () => setFace(i, !backs[i]) }, '字'));
   const tossHere = h('button', { type: 'button', class: 'primary', onclick: () => record(randomBacks(), true) }, '掷一次');
@@ -41,31 +40,9 @@ export function qiuqianHall(): HTMLElement {
     coins[i].textContent = back ? '背' : '字';
   }
 
-  function showMoment() {
-    const zone = timezone ?? guessedTimezone();
-    const now = localMoment(zone);
-    moment.textContent = `按 ${zone} 的时间起卦，现在是 ${now.date} ${now.time}。`;
-    zoneActions.replaceChildren(...(timezone ? [] : [h('button', { type: 'button', onclick: () => choose(zone) }, '就按这个时区')]),
-      h('label', { class: 'zone-pick' }, '换一个时区 ', zonePicker(zone)));
-  }
-
-  function zonePicker(current: string) {
-    const select = h('select', { id: 'timezone' },
-      ...timezones().map((zone) => h('option', { value: zone, ...(zone === current ? { selected: true } : {}) }, zone)));
-    select.addEventListener('change', () => choose(select.value));
-    return select;
-  }
-
-  function choose(zone: string) {
-    timezone = zone;
-    confirmTimezone(zone);
-    showMoment();
-    refresh();
-  }
-
   function refresh() {
     const done = lines.length === 6;
-    const blocked = done ? '' : !question.value.trim() ? '先写下所问之事。' : !timezone ? '先确认时区。' : '';
+    const blocked = done ? '' : !question.value.trim() ? '先写下所问之事。' : !zone.zone() ? '先确认时区。' : '';
     for (const button of [tossHere, tossOwn, ...coins]) button.disabled = done || Boolean(blocked);
     question.readOnly = lines.length > 0;
     hint.textContent = blocked || (done ? '' : `还要掷 ${6 - lines.length} 次。`);
@@ -85,12 +62,12 @@ export function qiuqianHall(): HTMLElement {
   }
 
   async function cast() {
-    const zone = timezone ?? guessedTimezone();
-    const now = localMoment(zone);
+    const timezone = zone.zone() ?? guessedTimezone();
+    const now = localMoment(timezone);
     outcome.replaceChildren(h('p', { class: 'status' }, '正在起卦，第一次要等算法包加载完…'));
     try {
       const result = await runJson<LiuyaoResult>({ script: 'liuyao_cast.py', argv: ['coins', '--lines', lines.join(','),
-        '--date', now.date, '--time', now.time, '--target-timezone', zone, '--question', question.value.trim()] });
+        '--date', now.date, '--time', now.time, '--target-timezone', timezone, '--question', question.value.trim()] });
       outcome.replaceChildren(await renderCard(liuyaoCard(result)));
     } catch (error) {
       const message = error instanceof ToolFailed ? error.message : '算法包运行出错，请刷新页面再试。';
@@ -99,7 +76,6 @@ export function qiuqianHall(): HTMLElement {
   }
 
   question.addEventListener('input', refresh);
-  showMoment();
   refresh();
 
   return h('section', { class: 'hall', 'aria-labelledby': 'hall-title' },
@@ -115,7 +91,7 @@ export function qiuqianHall(): HTMLElement {
         refresh();
       } }, text))),
     ),
-    h('div', { class: 'step' }, moment, zoneActions),
+    zone.element,
     h('div', { class: 'step toss' },
       h('div', { class: 'coins' }, ...coins),
       h('p', { class: 'hint' }, '一背为少阳，两背为少阴，三背为老阳，三字为老阴。用自己的铜钱掷时，点铜钱照落地的样子翻面，再点「照这样记下」。记下的爻不能撤回。'),
