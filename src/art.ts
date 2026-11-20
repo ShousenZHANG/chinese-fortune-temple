@@ -1,6 +1,7 @@
 // Pictures under public/art, made by scripts/art.py from the GPT Image set. Hall pictures are 480 px squares
 // shown through a round moon gate; the courtyard comes in two widths.
 import { h } from './dom';
+import { tr } from './i18n';
 
 export type HallId = 'qiuqian' | 'yuelao' | 'huangli' | 'wenxin' | 'ziwei' | 'xuyuan';
 
@@ -16,7 +17,7 @@ export function courtyard(): HTMLImageElement {
   return h('img', { class: 'panorama-img', src: artUrl('courtyard-768.webp'),
     srcset: `${artUrl('courtyard-768.webp')} 768w, ${artUrl('courtyard-1536.webp')} 1536w`,
     sizes: '(min-width: 64rem) 64rem, 100vw', width: '1536', height: '1024', decoding: 'async',
-    alt: '有据山寺全景：山门、中庭、几座殿和一棵挂满红绸的许愿树，背后是青绿远山' });
+    alt: tr('有据山寺全景：山门、中庭、几座殿和一棵挂满红绸的许愿树，背后是青绿远山', 'The temple: the gate, the courtyard, the halls and a wish tree hung with red ribbons, before blue-green mountains') });
 }
 
 /** The guide pointing the way; what he says is written beside him. */

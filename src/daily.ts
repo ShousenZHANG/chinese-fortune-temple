@@ -3,6 +3,7 @@
 import { renderCard } from './card/card';
 import { dailyCard, shortName, type CastResult, type LinResult } from './card/daily';
 import { h } from './dom';
+import { tr } from './i18n';
 import { confirmedTimezone, guessedTimezone, localMoment } from './moment';
 import { runJson, ToolFailed } from './skill/session';
 
@@ -29,29 +30,29 @@ function fnv(text: string): number {
 
 export function dailySlip(): HTMLElement {
   const outcome = h('div', { class: 'outcome', 'aria-live': 'polite' });
-  const button = h('button', { type: 'button', class: 'primary', onclick: () => void draw() }, '抽今日一签');
+  const button = h('button', { type: 'button', class: 'primary', onclick: () => void draw() }, tr('抽今日一签', 'Draw today’s slip'));
 
   async function draw() {
     const date = localMoment(confirmedTimezone() ?? guessedTimezone()).date;
     button.disabled = true;
-    outcome.replaceChildren(h('p', { class: 'status' }, '正在起卦，第一次要等算法包加载完…'));
+    outcome.replaceChildren(h('p', { class: 'status' }, tr('正在起卦，第一次要等算法包加载完…', 'Casting. The first time waits for the Skill to load…')));
     try {
       const cast = await runJson<CastResult>({ script: 'yijing_cast.py',
         argv: ['coins', '--seed', String(fnv(`${deviceSeed()}|${date}`)), '--question', '每日一签'] });
       const lin = await runJson<LinResult>({ script: 'yilin_lookup.py',
         argv: ['--from', shortName(cast.main_hex.name), '--to', shortName((cast.changed_hex ?? cast.main_hex).name)] });
       outcome.replaceChildren(await renderCard(dailyCard(cast, lin, date)));
-      button.textContent = '再看一眼今日一签';
+      button.textContent = tr('再看一眼今日一签', 'Show today’s slip again');
     } catch (error) {
-      const message = error instanceof ToolFailed ? error.message : '算法包运行出错，请刷新页面再试。';
+      const message = error instanceof ToolFailed ? error.message : tr('算法包运行出错，请刷新页面再试。', 'The Skill ran into an error. Please refresh the page.');
       outcome.replaceChildren(h('p', { class: 'status error', role: 'alert' }, message));
     } finally {
       button.disabled = false;
     }
   }
 
-  return h('section', { class: 'daily', 'aria-label': '每日一签' },
-    h('h3', { class: 'section-title' }, '每日一签'),
-    h('p', { class: 'hint' }, '每天一支，抽到的是《焦氏易林》里的一首林辞，附原文段号。同一天再抽还是这一支。'),
+  return h('section', { class: 'daily', 'aria-label': tr('每日一签', 'Daily slip') },
+    h('h3', { class: 'section-title' }, tr('每日一签', 'Daily slip')),
+    h('p', { class: 'hint' }, tr('每天一支，抽到的是《焦氏易林》里的一首林辞，附原文段号。同一天再抽还是这一支。', 'One slip a day: a verse from the 焦氏易林 with its passage id, kept in Chinese. Drawing again the same day gives the same slip.')),
     h('div', {}, button), outcome);
 }

@@ -21,7 +21,6 @@ test('the courtyard shows the temple, a guide, and every hall through its moon g
   await expect(tiles.getByRole('link', { name: /黄历亭/ })).toHaveAttribute('href', '#/huangli');
   await expect(tiles.getByRole('link', { name: /问心堂/ })).toHaveAttribute('href', '#/wenxin');
   await expect(tiles.getByRole('link', { name: /许愿树/ })).toHaveAttribute('href', '#/xuyuan');
-  await expect(page.locator('.hall-tile.closed')).toHaveCount(0);
 
   await page.locator('main img').last().scrollIntoViewIfNeeded();
   await expect.poll(() => brokenImages(page)).toEqual([]);

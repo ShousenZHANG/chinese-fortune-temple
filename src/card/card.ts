@@ -3,6 +3,7 @@
 // fetched by its id. Before anything is shown, every sentence the card states (first layer and conditions) goes
 // through the Skill's answer_check against the tool results it came from; a card with errors is withheld.
 import { h, type Child } from '../dom';
+import { currentLang, tr } from '../i18n';
 import { rememberSource } from '../records/handoff';
 import { sharePanel } from '../share';
 import { runJson, runTool, skillVersion } from '../skill/session';
@@ -58,12 +59,12 @@ export function withheld(intro: string, errors: Finding[]): HTMLElement {
 
 export async function renderCard(model: CardModel): Promise<HTMLElement> {
   const errors = await checkAnswer([...model.first, ...model.conditions].join('\n'), model.facts);
-  if (errors.length) return withheld('这张签没有通过自检，所以不显示。自检发现：', errors);
+  if (errors.length) return withheld(tr('这张签没有通过自检，所以不显示。自检发现：', 'This card failed its self-check, so it is not shown. The check found:'), errors);
   const shareSlot = h('div', { class: 'share-slot' });
   const openShare = () => (shareSlot.childElementCount ? shareSlot.replaceChildren() : shareSlot.replaceChildren(sharePanel({
     frame: 'frame-share', title: model.title, footer: `有据山寺 · ${skillVersion()}`, file: '有据山寺-签文.png',
     strokes: model.strokes,
-    lines: [{ text: `所问：${model.question}`, optional: { label: '分享图上写出所问之事', on: true } },
+    lines: [{ text: `所问：${model.question}`, optional: { label: tr('分享图上写出所问之事', 'Write the question on the image'), on: true } },
       ...model.share.map((text) => ({ text }))],
   })));
   const followSlot = h('div', { class: 'share-slot' });
@@ -74,28 +75,29 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
     }
     void import('../followup/panel').then(({ followupPanel }) => followSlot.replaceChildren(followupPanel(model)));
   };
-  return h('article', { class: 'card', 'aria-label': '签文卡' },
+  return h('article', { class: 'card', 'aria-label': tr('签文卡', 'Reading card') },
     h('header', { class: 'card-head' },
       model.glyph ?? null,
       h('div', {},
         h('h2', { class: 'card-title' }, model.title),
-        h('p', { class: 'card-question' }, `所问：${model.question}`),
+        h('p', { class: 'card-question' }, `${tr('所问：', 'Asked: ')}${model.question}`),
       ),
     ),
+    currentLang() === 'en' ? h('p', { class: 'note' }, 'Below is the Skill’s own Chinese text; classical passages stay in the original.') : null,
     h('div', { class: 'card-first', 'data-testid': 'first-answer' }, ...model.first.map((text) => h('p', {}, text))),
-    h('details', { class: 'card-layer' }, h('summary', {}, '看盘面'),
+    h('details', { class: 'card-layer' }, h('summary', {}, tr('看盘面', 'Chart')),
       model.conditions.length
-        ? h('div', { class: 'layer-body' }, entry('已能核的条件', ...model.conditions.map((text) => h('p', {}, text))))
+        ? h('div', { class: 'layer-body' }, entry(tr('已能核的条件', 'Conditions already checkable'), ...model.conditions.map((text) => h('p', {}, text))))
         : null,
       model.chart),
-    h('details', { class: 'card-layer' }, h('summary', {}, '看原文'), model.originals),
+    h('details', { class: 'card-layer' }, h('summary', {}, tr('看原文', 'Classical sources')), model.originals),
     h('footer', { class: 'card-foot' },
       h('button', { type: 'button', class: 'chip', onclick: () => {
         rememberSource({ title: model.title, question: model.question });
         location.hash = '#/xuyuan';
-      } }, '就此事许个愿'),
-      h('button', { type: 'button', class: 'chip', onclick: openShare }, '生成分享图'),
-      h('button', { type: 'button', class: 'chip', onclick: openFollow }, '追问'),
+      } }, tr('就此事许个愿', 'Make a wish about this')),
+      h('button', { type: 'button', class: 'chip', onclick: openShare }, tr('生成分享图', 'Share image')),
+      h('button', { type: 'button', class: 'chip', onclick: openFollow }, tr('追问', 'Follow-up')),
       h('span', { class: 'seal', 'data-testid': 'skill-mark' }, skillVersion())),
     shareSlot,
     followSlot,
@@ -141,7 +143,7 @@ export function citations(cites: Cite[], note?: string): HTMLElement | null {
     backing.set(cite.id, { labels, quote: known.quote ?? cite.quote });
   }
   if (!backing.size) return null;
-  return entry('所据条文',
+  return entry(tr('所据条文', 'Passages relied on'),
     ...[...backing].map(([id, item]) => h('div', { class: 'citation' },
       ...item.labels.map((label) => h('p', {}, label)),
       item.quote ? h('p', { class: 'classic' }, item.quote) : null,
@@ -173,9 +175,9 @@ export function passage(id: string): HTMLElement {
           h('blockquote', {}, hit.text),
           h('figcaption', {}, [hit.book_title && `《${hit.book_title}》`, hit.chapter_title, hit.section].filter(Boolean).join(' ')),
           hit.use_limit ? h('p', { class: 'passage-limit' }, hit.use_limit) : null)
-        : h('p', {}, '随包古籍里没有查到这一段。'));
+        : h('p', {}, tr('随包古籍里没有查到这一段。', 'This passage is not in the bundled classics.')));
     } catch (error) {
-      text.replaceChildren(h('p', {}, error instanceof Error ? error.message : '原文没有取到。'));
+      text.replaceChildren(h('p', {}, error instanceof Error ? error.message : tr('原文没有取到。', 'The passage could not be fetched.')));
     } finally {
       button.disabled = false;
       button.setAttribute('aria-expanded', 'true');

@@ -6,7 +6,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   reporter: process.env.CI ? 'github' : 'list',
-  use: { baseURL: 'http://127.0.0.1:4780', trace: 'retain-on-failure' },
+  // The interface follows the browser language; tests read Chinese labels unless a spec asks for English.
+  use: { baseURL: 'http://127.0.0.1:4780', trace: 'retain-on-failure', locale: 'zh-CN' },
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },

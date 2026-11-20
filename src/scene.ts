@@ -3,6 +3,7 @@
 // The pins are ordinary links, so keyboards, screen readers and reduced motion go straight in.
 import { artUrl, courtyard } from './art';
 import { h } from './dom';
+import { placeName, tr } from './i18n';
 
 interface Spot {
   href: string;
@@ -50,10 +51,10 @@ export function scene(): HTMLElement {
     setTimeout(() => { location.hash = spot.href; }, WALK_MS);
   }
 
-  return h('section', { class: 'scene', 'aria-label': '中庭全景' },
+  return h('section', { class: 'scene', 'aria-label': tr('中庭全景', 'Courtyard view') },
     courtyard(),
     ...SPOTS.map((spot) => h('a', { class: 'spot', href: spot.href, style: `left:${spot.x}%;top:${sceneY(spot.y)}%`,
-      onclick: (event) => walk(spot, event) }, spot.name)),
+      onclick: (event) => walk(spot, event) }, placeName(spot.name))),
     walker,
   );
 }
