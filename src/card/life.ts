@@ -55,5 +55,6 @@ export function lifeCard(markdown: string, result: LifeResult, question: string)
       entry('版本与许可', h('p', {}, `${source.attribution}，冻结在提交 ${source.commit.slice(0, 8)}（${source.snapshot_date}），正文按 ${source.license} 使用。`),
         h('a', { href: source.license_url, rel: 'noopener', target: '_blank' }, `${source.license} 许可原文`))),
     facts: [result],
+    share: lifeLead(markdown).slice(0, 1),
   };
 }

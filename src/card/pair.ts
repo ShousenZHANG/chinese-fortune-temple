@@ -143,5 +143,6 @@ export function pairCard(result: PairResult, names: Record<Side, string>, questi
     chart: chart(result, names),
     originals: originals(result),
     facts: [result],
+    share: [],
   };
 }

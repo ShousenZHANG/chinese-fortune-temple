@@ -405,6 +405,12 @@ textarea {
 .reminder p { margin: 0; }
 .reminders:empty { display: none; }
 
+.share-panel { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem; }
+.share-panel .hint { margin: 0; }
+.share-preview { width: min(18rem, 100%); height: auto; aspect-ratio: 2 / 3; border: 1px solid var(--wash); border-radius: 6px; }
+.share-slot:empty { display: none; }
+.share-details summary { cursor: pointer; color: var(--cinnabar); }
+
 /* 香客簿 */
 .section-title { margin: 0; font: 400 var(--step-2)/1.3 var(--font-kai); letter-spacing: 0.1em; }
 .pilgrims { display: flex; flex-direction: column; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }

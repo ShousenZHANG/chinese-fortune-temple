@@ -82,5 +82,6 @@ export function ziweiCard(result: ZiweiResult, name: string, question: string): 
     chart: chart(result),
     originals: originals(result, first),
     facts: [result],
+    share: [],
   };
 }

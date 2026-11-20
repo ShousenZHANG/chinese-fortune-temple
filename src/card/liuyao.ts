@@ -113,5 +113,6 @@ export function liuyaoCard(result: LiuyaoResult): CardModel {
     chart: chartTable(result),
     originals: originals(result),
     facts: [result],
+    share: result.first_answer.slice(0, 1).map((part) => part.text),
   };
 }
