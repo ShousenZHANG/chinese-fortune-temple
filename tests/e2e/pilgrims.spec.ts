@@ -41,7 +41,7 @@ test('香客簿 keeps people on this device, exports them, clears them and impor
   await page.getByRole('button', { name: '导出成文件' }).click();
   const file = await (await download).path();
   const backup = JSON.parse(await readFile(file, 'utf8'));
-  expect(backup).toMatchObject({ format: 'youju-shansi-backup', version: 1 });
+  expect(backup).toMatchObject({ format: 'youju-shansi-backup', version: 2, wishes: [] });
   expect(backup.pilgrims.map((p: { name: string }) => p.name)).toEqual(['阿甲', '阿乙']);
 
   await page.getByRole('button', { name: '清除全部' }).click();

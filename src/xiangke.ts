@@ -3,7 +3,7 @@
 import { h } from './dom';
 import { cities, cityFacts, type City } from './records/cities';
 import { describeBirth, genderName, InvalidRecord, NAME_MAX, parsePilgrim, type Pilgrim } from './records/pilgrim';
-import { clearPilgrims, deletePilgrim, exportBackup, importBackup, listPilgrims, parseBackup, savePilgrim }
+import { clearAll, deletePilgrim, exportBackup, importBackup, listPilgrims, parseBackup, savePilgrim }
   from './records/store';
 
 type Notice = { kind: 'alert' | 'status'; text: string } | null;
@@ -159,7 +159,7 @@ export function xiangke(): HTMLElement {
   async function exportFile() {
     const backup = await exportBackup();
     download(`有据山寺-香客簿-${today()}.json`, `${JSON.stringify(backup, null, 2)}\n`);
-    notify(backupNotice, { kind: 'status', text: `导出了 ${backup.pilgrims.length} 位香客。文件里有出生资料，请自己保管好。` });
+    notify(backupNotice, { kind: 'status', text: `导出了 ${backup.pilgrims.length} 位香客${backup.wishes.length ? `和 ${backup.wishes.length} 个愿望` : ''}。文件里有出生资料和心愿原文，请自己保管好。` });
   }
 
   async function importFile() {
@@ -170,17 +170,17 @@ export function xiangke(): HTMLElement {
       const backup = parseBackup(await file.text(), known);
       await importBackup(backup);
       await render();
-      notify(backupNotice, { kind: 'status', text: `导入了 ${backup.pilgrims.length} 位香客。` });
+      notify(backupNotice, { kind: 'status', text: `导入了 ${backup.pilgrims.length} 位香客${backup.wishes.length ? `和 ${backup.wishes.length} 个愿望` : ''}。` });
     } catch (error) {
       notify(backupNotice, { kind: 'alert', text: error instanceof InvalidRecord ? `没有导入：${error.message}` : '没有导入：读不了这个文件。' });
     }
   }
 
-  async function clearAll() {
-    await clearPilgrims();
+  async function clearEverything() {
+    await clearAll();
     fill(null);
     await render();
-    notify(backupNotice, { kind: 'status', text: '香客簿已清空。' });
+    notify(backupNotice, { kind: 'status', text: '香客簿和愿望簿已清空。' });
   }
 
   const heading = h('h3', { class: 'section-title' }, '添一位香客');
@@ -203,8 +203,8 @@ export function xiangke(): HTMLElement {
   const exportButton = h('button', { type: 'button', onclick: () => void exportFile() }, '导出成文件');
   const picker = h('input', { id: 'backup-file', type: 'file', accept: '.json,application/json', class: 'visually-hidden' });
   const clearButton = h('button', { type: 'button', onclick: () => { confirmClear.hidden = false; } }, '清除全部');
-  confirmClear.append(h('p', {}, '香客簿里的人会从这台设备删掉，没有导出过就找不回来。'),
-    h('button', { type: 'button', class: 'primary', onclick: () => void clearAll() }, '确认清除'),
+  confirmClear.append(h('p', {}, '香客簿里的人和愿望簿里的愿都会从这台设备删掉，没有导出过就找不回来。'),
+    h('button', { type: 'button', class: 'primary', onclick: () => void clearEverything() }, '确认清除'),
     h('button', { type: 'button', onclick: () => { confirmClear.hidden = true; } }, '不清除'));
 
   form.addEventListener('change', syncCalendar);
@@ -227,7 +227,7 @@ export function xiangke(): HTMLElement {
     form,
     h('section', { class: 'backup', 'aria-label': '备份与清除' },
       h('h3', { class: 'section-title' }, '备份与清除'),
-      h('p', { class: 'hint' }, '换设备前先导出成文件，到新设备再导入。导入时同一个人不会重复。'),
+      h('p', { class: 'hint' }, '香客簿和愿望簿一起导出成一个文件；换设备时到新设备再导入。同一个人、同一个愿不会重复。'),
       h('div', { class: 'row' }, exportButton, h('label', { class: 'file-button', for: 'backup-file' }, '从文件导入'), picker,
         clearButton),
       confirmClear,
