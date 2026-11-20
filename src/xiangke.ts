@@ -1,6 +1,7 @@
 // 香客簿 page: the people kept on this device, a form to add or change one, and the backup file in and out.
 // Clearing and deleting ask once more in place, since nothing here can be recovered without an exported file.
 import { h } from './dom';
+import { download } from './download';
 import { cities, cityFacts, type City } from './records/cities';
 import { describeBirth, genderName, InvalidRecord, NAME_MAX, parsePilgrim, type Pilgrim } from './records/pilgrim';
 import { clearAll, deletePilgrim, exportBackup, importBackup, listPilgrims, parseBackup, savePilgrim }
@@ -9,15 +10,6 @@ import { clearAll, deletePilgrim, exportBackup, importBackup, listPilgrims, pars
 type Notice = { kind: 'alert' | 'status'; text: string } | null;
 
 const today = () => new Date().toISOString().slice(0, 10);
-
-function download(name: string, text: string) {
-  const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
-  const link = h('a', { href: url, download: name });
-  document.body.append(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 
 function numberField(label: string, id: string, max: number) {
   const input = h('input', { id, type: 'number', inputmode: 'numeric', min: '1', max: String(max) });
@@ -158,7 +150,7 @@ export function xiangke(): HTMLElement {
 
   async function exportFile() {
     const backup = await exportBackup();
-    download(`有据山寺-香客簿-${today()}.json`, `${JSON.stringify(backup, null, 2)}\n`);
+    download(`有据山寺-香客簿-${today()}.json`, `${JSON.stringify(backup, null, 2)}\n`, 'application/json');
     notify(backupNotice, { kind: 'status', text: `导出了 ${backup.pilgrims.length} 位香客${backup.wishes.length ? `和 ${backup.wishes.length} 个愿望` : ''}。文件里有出生资料和心愿原文，请自己保管好。` });
   }
 
