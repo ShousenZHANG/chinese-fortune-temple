@@ -4,3 +4,5 @@ dist/
 public/skill/
 test-results/
 playwright-report/
+tests/parity/reference.json
+public/pyodide/
