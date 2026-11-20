@@ -15,9 +15,11 @@ manifest = json.loads((ROOT / 'public' / 'skill' / 'manifest.json').read_text(en
 cases = json.loads((ROOT / 'tests' / 'parity' / 'cases.json').read_text(encoding='utf-8'))['cases']
 with tempfile.TemporaryDirectory() as tmp:
     zipfile.ZipFile(ROOT / 'public' / 'skill' / manifest['archive']).extractall(tmp)
-    scripts = Path(tmp) / 'chinese-fortune' / 'scripts'
+    dirs = {'chinese-fortune': Path(tmp) / 'chinese-fortune' / 'scripts',
+            'life-guide': ROOT / 'public' / 'skill' / 'life-guide' / 'scripts'}
     out = {}
     for case in cases:
+        scripts = dirs[case.get('skill', 'chinese-fortune')]
         # The browser has no system zone files, so the Skill reads its own vendored tzdata there. An empty
         # PYTHONTZPATH makes the reference read the same data instead of /usr/share/zoneinfo (CI run 44653387556).
         done = subprocess.run([sys.executable, '-X', 'utf8', str(scripts / case['script']), *case['argv']],

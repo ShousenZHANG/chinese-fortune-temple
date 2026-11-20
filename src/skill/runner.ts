@@ -6,7 +6,8 @@ export class SkillRunner {
   private nextId = 1;
   private readonly pending = new Map<number, { resolve(r: ToolResult): void; reject(e: Error): void }>();
 
-  constructor(archive: string, onStage: (stage: LoadStage, detail?: string) => void = () => {}) {
+  constructor(archive: string, sources: Extract<WorkerRequest, { type: 'boot' }>['sources'],
+              onStage: (stage: LoadStage, detail?: string) => void = () => {}) {
     this.worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' });
     this.worker.onmessage = (event: MessageEvent<WorkerReply>) => {
       const reply = event.data;
@@ -19,7 +20,7 @@ export class SkillRunner {
       if (reply.type === 'result') waiting?.resolve(reply.result);
       else waiting?.reject(new Error(reply.message));
     };
-    this.send({ type: 'boot', base: import.meta.env.BASE_URL, archive });
+    this.send({ type: 'boot', base: import.meta.env.BASE_URL, archive, sources });
   }
 
   runTool(call: ToolCall): Promise<ToolResult> {

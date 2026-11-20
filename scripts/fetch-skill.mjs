@@ -2,6 +2,8 @@
 //   1. the archive's SHA-256 matches its line in SHA256SUMS;
 //   2. CI-PROVENANCE.json lists the same checksum and required a successful CI run;
 //   3. the release tag points at the commit the provenance names.
+// Skills the release does not ship (life-guide, for 问心堂) are taken file by file from that same commit, and each
+// file must hash to its git blob id there, so a single changed byte is refused.
 // The version in skill.config.json is the only place an upgrade happens (spec, issue #1).
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -10,9 +12,12 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'public', 'skill');
-const { repo, version } = JSON.parse(readFileSync(join(ROOT, 'skill.config.json'), 'utf8'));
+const { repo, version, sourceSkills = [] } = JSON.parse(readFileSync(join(ROOT, 'skill.config.json'), 'utf8'));
 const archive = `chinese-fortune-v${version}.zip`;
 const base = `https://github.com/${repo}/releases/download/v${version}`;
+const manifestPath = join(OUT, 'manifest.json');
+const apiHeaders = { Accept: 'application/vnd.github+json' };
+if (process.env.GITHUB_TOKEN) apiHeaders.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
 
 class Refused extends Error {}
 
@@ -36,27 +41,21 @@ async function get(url, headers = {}) {
 }
 
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex');
+const gitBlob = (bytes) => createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
 
 async function tagCommit() {
-  const headers = { Accept: 'application/vnd.github+json' };
-  if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-  let ref = JSON.parse(await get(`https://api.github.com/repos/${repo}/git/ref/tags/v${version}`, headers));
+  let ref = JSON.parse(await get(`https://api.github.com/repos/${repo}/git/ref/tags/v${version}`, apiHeaders));
   // An annotated tag points at a tag object first.
-  while (ref.object.type === 'tag') ref = JSON.parse(await get(ref.object.url, headers));
+  while (ref.object.type === 'tag') ref = JSON.parse(await get(ref.object.url, apiHeaders));
   return ref.object.sha;
 }
 
-async function main() {
-  const manifestPath = join(OUT, 'manifest.json');
-  if (existsSync(manifestPath) && existsSync(join(OUT, archive))) {
-    const kept = JSON.parse(readFileSync(manifestPath, 'utf8'));
-    if (kept.version === version && kept.sha256 === sha256(readFileSync(join(OUT, archive)))) {
-      console.log(`fetch-skill: v${version} already verified (${kept.commit.slice(0, 7)})`);
-      return;
-    }
+async function verifiedRelease(kept) {
+  if (kept?.version === version && existsSync(join(OUT, archive))
+      && kept.sha256 === sha256(readFileSync(join(OUT, archive)))) {
+    console.log(`fetch-skill: v${version} already verified (${kept.commit.slice(0, 7)})`);
+    return { version, archive, sha256: kept.sha256, commit: kept.commit, ciRunId: kept.ciRunId, repo };
   }
-
-  mkdirSync(OUT, { recursive: true });
   const [zip, sums, provenanceBytes] = await Promise.all(
     [archive, 'SHA256SUMS', 'CI-PROVENANCE.json'].map((name) => get(`${base}/${name}`)),
   );
@@ -68,13 +67,53 @@ async function main() {
   if (!String(provenance.checksums).split('\n').includes(line)) fail('provenance checksums do not list this archive');
   const commit = await tagCommit();
   if (commit !== provenance.commit) fail(`tag v${version} is ${commit}, provenance says ${provenance.commit}`);
-
   writeFileSync(join(OUT, archive), zip);
   writeFileSync(join(OUT, 'SHA256SUMS'), sums);
   writeFileSync(join(OUT, 'CI-PROVENANCE.json'), provenanceBytes);
-  const manifest = { version, archive, sha256: digest, commit, ciRunId: String(provenance.ci_run_id), repo };
-  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   console.log(`fetch-skill: v${version} verified (${commit.slice(0, 7)}, CI ${provenance.ci_run_id})`);
+  return { version, archive, sha256: digest, commit, ciRunId: String(provenance.ci_run_id), repo };
+}
+
+function keptSource(kept, name, commit) {
+  const source = kept?.sources?.[name];
+  if (source?.commit !== commit) return null;
+  const intact = source.files.every((file) => {
+    const path = join(OUT, name, file.path);
+    return existsSync(path) && gitBlob(readFileSync(path)) === file.sha;
+  });
+  return intact ? source : null;
+}
+
+async function verifiedSource(name, commit, kept) {
+  const reused = keptSource(kept, name, commit);
+  if (reused) {
+    console.log(`fetch-skill: ${name} already verified at ${commit.slice(0, 7)} (${reused.files.length} files)`);
+    return reused;
+  }
+  const tree = JSON.parse(await get(`https://api.github.com/repos/${repo}/git/trees/${commit}?recursive=1`, apiHeaders));
+  if (tree.truncated) fail(`the tree at ${commit} is truncated; ${name} cannot be listed completely`);
+  const prefix = `skills/${name}/`;
+  const blobs = tree.tree.filter((entry) => entry.type === 'blob' && entry.path.startsWith(prefix));
+  if (!blobs.length) fail(`${prefix} does not exist at ${commit}`);
+  const files = await Promise.all(blobs.map(async (blob) => {
+    const bytes = await get(`https://raw.githubusercontent.com/${repo}/${commit}/${blob.path}`);
+    if (gitBlob(bytes) !== blob.sha) fail(`${blob.path} does not match its git blob at ${commit}`);
+    const path = blob.path.slice(prefix.length);
+    mkdirSync(dirname(join(OUT, name, path)), { recursive: true });
+    writeFileSync(join(OUT, name, path), bytes);
+    return { path, sha: blob.sha, size: bytes.length };
+  }));
+  console.log(`fetch-skill: ${name} verified at ${commit.slice(0, 7)} (${files.length} files)`);
+  return { commit, files: files.sort((a, b) => a.path.localeCompare(b.path)) };
+}
+
+async function main() {
+  mkdirSync(OUT, { recursive: true });
+  const kept = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
+  const release = await verifiedRelease(kept);
+  const sources = {};
+  for (const name of sourceSkills) sources[name] = await verifiedSource(name, release.commit, kept);
+  writeFileSync(manifestPath, `${JSON.stringify({ ...release, sources }, null, 2)}\n`);
 }
 
 try {

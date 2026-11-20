@@ -7,6 +7,7 @@ interface SkillManifest {
   version: string;
   commit: string;
   archive: string;
+  sources: Record<string, { commit: string; files: { path: string; sha: string }[] }>;
 }
 
 declare global {
@@ -23,7 +24,7 @@ async function start(): Promise<void> {
     if (!response.ok) throw new Error(String(response.status));
     const manifest = (await response.json()) as SkillManifest;
     if (label) label.textContent = `chinese-fortune v${manifest.version} · ${manifest.commit.slice(0, 7)}`;
-    const runner = new SkillRunner(manifest.archive, (stage) => {
+    const runner = new SkillRunner(manifest.archive, manifest.sources, (stage) => {
       document.documentElement.dataset.skillStage = stage;
     });
     window.temple = { runTool: (call) => runner.runTool(call) };
