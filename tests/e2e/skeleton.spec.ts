@@ -15,3 +15,13 @@ test('the temple shows which verified Skill release it runs', async ({ page }) =
   expect(archive.ok()).toBe(true);
   expect((await archive.body()).length).toBeGreaterThan(1_000_000);
 });
+
+test('link previews name the site and point at a 1200×630 image that is served', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', '有据山寺');
+  const image = await page.locator('meta[property="og:image"]').getAttribute('content');
+  expect(image).toMatch(/^https:\/\/.+\/art\/og\.jpg$/);
+  const local = await page.request.get(new URL(image ?? '').pathname);
+  expect(local.ok()).toBe(true);
+  expect(local.headers()['content-type']).toContain('image/jpeg');
+});
