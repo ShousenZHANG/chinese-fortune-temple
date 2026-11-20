@@ -22,7 +22,8 @@ export interface CardModel {
 interface Finding {
   code: string;
   severity: string;
-  message?: string;
+  excerpt?: string;
+  detail?: string;
 }
 
 interface CheckReport {
@@ -47,7 +48,8 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
   if (errors.length) {
     return h('div', { class: 'card-withheld', role: 'alert' },
       h('p', {}, '这张签没有通过自检，所以不显示。自检发现：'),
-      h('ul', {}, ...errors.map((error) => h('li', {}, error.message ? `${error.code}：${error.message}` : error.code))),
+      h('ul', {}, ...errors.map((error) => h('li', {}, [error.detail ?? error.code, error.excerpt && `「${error.excerpt}」`]
+        .filter(Boolean).join('：')))),
     );
   }
   return h('article', { class: 'card', 'aria-label': '签文卡' },
@@ -72,6 +74,36 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
 /** A label/value block used inside the layers. */
 export function entry(label: string, ...body: Child[]): HTMLElement {
   return h('div', { class: 'entry' }, h('p', { class: 'entry-label' }, label), ...body);
+}
+
+/** One reason a passage is on the card: what it backs, and the tool's own quote of it if there is one. */
+export interface Cite {
+  id: string;
+  label: string;
+  quote?: string;
+}
+
+const PASSAGE_ID = /\b[a-z_]+:c\d{3}:p\d{4}\b/g;
+
+/** Full passage ids written inside a tool sentence, each cited with the same label. */
+export const citesIn = (sentences: string[], label: string): Cite[] =>
+  sentences.flatMap((text) => (text.match(PASSAGE_ID) ?? []).map((id) => ({ id, label })));
+
+/** 所据条文: each passage once, with every item it backs and an opener for its full text. */
+export function citations(cites: Cite[], note?: string): HTMLElement | null {
+  const backing = new Map<string, { labels: string[]; quote?: string }>();
+  for (const cite of cites) {
+    const known = backing.get(cite.id) ?? { labels: [] };
+    const labels = known.labels.includes(cite.label) ? known.labels : [...known.labels, cite.label];
+    backing.set(cite.id, { labels, quote: known.quote ?? cite.quote });
+  }
+  if (!backing.size) return null;
+  return entry('所据条文',
+    ...[...backing].map(([id, item]) => h('div', { class: 'citation' },
+      ...item.labels.map((label) => h('p', {}, label)),
+      item.quote ? h('p', { class: 'classic' }, item.quote) : null,
+      passage(id))),
+    note ? h('p', { class: 'note' }, note) : null);
 }
 
 interface PassageResult {

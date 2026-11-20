@@ -15,7 +15,8 @@ test('the courtyard shows the temple, a guide, and every hall through its moon g
     await expect(page.locator('.hall-tile', { hasText: name }).locator('img.moon')).toHaveCount(1);
   }
   await expect(page.getByRole('link', { name: /求签殿/ })).toHaveAttribute('href', '#/qiuqian');
-  await expect(page.locator('.hall-tile.closed')).toHaveCount(5);
+  await expect(page.getByRole('link', { name: /月老殿/ })).toHaveAttribute('href', '#/yuelao');
+  await expect(page.locator('.hall-tile.closed')).toHaveCount(4);
 
   await page.locator('main img').last().scrollIntoViewIfNeeded();
   await expect.poll(() => brokenImages(page)).toEqual([]);

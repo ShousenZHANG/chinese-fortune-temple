@@ -19,6 +19,14 @@
       ]
     },
     {
+      "id": "pair-xuanze",
+      "script": "pair_facts.py",
+      "argv": [
+        "--stdin"
+      ],
+      "stdin": "{\"a\": {\"year\": 1990, \"month\": 6, \"day\": 12, \"gender\": \"male\", \"city\": \"北京\"}, \"b\": {\"year\": 1992, \"month\": 9, \"day\": 18, \"gender\": \"female\", \"city\": \"北京\"}, \"question\": \"两人八字之间的合冲刑害，三元九宫合婚\"}"
+    },
+    {
       "id": "pair-xieji",
       "script": "pair_facts.py",
       "argv": [
