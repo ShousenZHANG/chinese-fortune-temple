@@ -6,11 +6,15 @@
     <title>有据山寺</title>
   </head>
   <body>
-    <main>
+    <header class="site-head">
       <h1>有据山寺</h1>
-      <p>一座能真算的山寺，正在修建。</p>
-    </main>
-    <footer><small data-testid="skill-version">正在核对算法包…</small></footer>
+      <p class="tagline">掷钱、合婚、看黄历，每一签都能查到古籍出处。</p>
+    </header>
+    <main id="app"></main>
+    <footer class="site-foot">
+      <small data-testid="skill-version">正在核对算法包…</small>
+      <small data-testid="skill-stage" aria-live="polite"></small>
+    </footer>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
