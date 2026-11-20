@@ -1,6 +1,8 @@
 // Hash routes, one view at a time. The boundary note is shown once for the whole visit history (spec story 42).
 import { court } from './court';
 import { h } from './dom';
+import { dharmaName, renameDharma } from './name';
+import { muted, setMuted } from './sound';
 import { huangliHall } from './halls/huangli';
 import { qiuqianHall } from './halls/qiuqian';
 import { wenxinHall } from './halls/wenxin';
@@ -31,7 +33,23 @@ function boundaryNote(): HTMLElement | null {
   return note;
 }
 
+// Header tools: the 法名 with a way to change it, and the one switch that mutes every sound.
+function siteTools(): HTMLElement {
+  const name = h('span', { class: 'dharma', 'data-testid': 'dharma-name' }, dharmaName());
+  const mute = h('button', { type: 'button', class: 'chip', 'aria-pressed': String(muted()) }, '静音');
+  mute.addEventListener('click', () => {
+    const next = mute.getAttribute('aria-pressed') !== 'true';
+    setMuted(next);
+    mute.setAttribute('aria-pressed', String(next));
+  });
+  return h('div', { class: 'site-tools' },
+    h('span', {}, '法名 ', name),
+    h('button', { type: 'button', class: 'chip', onclick: () => { name.textContent = renameDharma(); } }, '换一个法名'),
+    mute);
+}
+
 export function mountApp(root: HTMLElement): void {
+  document.querySelector('.site-head')?.append(siteTools());
   const note = boundaryNote();
   if (note) root.before(note);
   const show = () => {

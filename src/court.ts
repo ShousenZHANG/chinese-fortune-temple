@@ -1,7 +1,10 @@
 // 中庭, laid out like a temple plan: 紫微殿 at the back of the axis, 求签殿 in the middle, the gate at the front,
 // side halls on either hand. Halls that are not built yet say so instead of linking nowhere.
 import { courtyard, guideMonk, moonGate, type HallId } from './art';
+import { artUrl } from './art';
 import { h } from './dom';
+import { dharmaName } from './name';
+import { zen } from './zen';
 import { confirmedTimezone, guessedTimezone, localMoment } from './moment';
 import { listWishes } from './records/store';
 import { dueWishes } from './records/wish';
@@ -35,14 +38,21 @@ function hallTile(hall: Hall): HTMLElement {
     : h('div', { class: `hall-tile at-${hall.id} closed`, 'aria-disabled': 'true' }, ...body);
 }
 
-function panorama(): HTMLElement {
+function panorama(monk: HTMLImageElement): HTMLElement {
   return h('figure', { class: 'panorama' },
     courtyard(),
     h('figcaption', { class: 'guide', 'data-testid': 'guide' },
-      guideMonk(),
-      h('p', { class: 'say' }, '想问哪件事，就进哪座殿。急着求一支签，就去正中的求签殿。'),
+      monk,
+      h('p', { class: 'say' }, `${dharmaName()}，想问哪件事，就进哪座殿。急着求一支签，就去正中的求签殿。`),
     ),
   );
+}
+
+/** 合掌: the guide bows back for a moment. */
+function bow(monk: HTMLImageElement): void {
+  const pointing = monk.src;
+  monk.src = artUrl('monk-bow.webp');
+  setTimeout(() => { monk.src = pointing; }, 2500);
 }
 
 // Story 49: a wish whose return day has come is mentioned on the way in.
@@ -63,9 +73,10 @@ function reminders(): HTMLElement {
 }
 
 export function court(): HTMLElement {
+  const monk = guideMonk();
   return h('div', { class: 'court-view' },
     reminders(),
-    panorama(),
+    panorama(monk),
     h('section', { class: 'court', 'aria-label': '中庭' },
       ...HALLS.map(hallTile),
       h('div', { class: 'gate' },
@@ -74,5 +85,6 @@ export function court(): HTMLElement {
         h('a', { class: 'gate-link', href: '#/xiangke' }, '香客簿'),
       ),
     ),
+    zen(() => bow(monk)),
   );
 }
