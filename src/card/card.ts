@@ -3,6 +3,7 @@
 // fetched by its id. Before anything is shown, every sentence the card states (first layer and conditions) goes
 // through the Skill's answer_check against the tool results it came from; a card with errors is withheld.
 import { h, type Child } from '../dom';
+import { rememberSource } from '../records/handoff';
 import { runJson, runTool, skillVersion } from '../skill/session';
 
 export interface CardModel {
@@ -67,7 +68,12 @@ export async function renderCard(model: CardModel): Promise<HTMLElement> {
         : null,
       model.chart),
     h('details', { class: 'card-layer' }, h('summary', {}, '看原文'), model.originals),
-    h('footer', { class: 'card-foot' }, h('span', { class: 'seal', 'data-testid': 'skill-mark' }, skillVersion())),
+    h('footer', { class: 'card-foot' },
+      h('button', { type: 'button', class: 'chip', onclick: () => {
+        rememberSource({ title: model.title, question: model.question });
+        location.hash = '#/xuyuan';
+      } }, '就此事许个愿'),
+      h('span', { class: 'seal', 'data-testid': 'skill-mark' }, skillVersion())),
   );
 }
 

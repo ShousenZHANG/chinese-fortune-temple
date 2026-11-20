@@ -3,6 +3,9 @@
 // and the 还愿卡 says so. Wishes stay on this device.
 import { artUrl, moonGate } from '../art';
 import { h } from '../dom';
+import { download } from '../download';
+import { wishCalendar } from '../records/calendar';
+import { forgetSource, pendingSource } from '../records/handoff';
 import { confirmedTimezone, guessedTimezone, localMoment } from '../moment';
 import { InvalidRecord } from '../records/pilgrim';
 import { listWishes, saveWish } from '../records/store';
@@ -39,6 +42,9 @@ function returnCard(wish: Wish & { state: { status: 'fulfilled' } }, total: numb
 
 export function xuyuanHall(): HTMLElement {
   let wishes: Wish[] = [];
+  let source = pendingSource();
+  const sourceLine = h('p', { class: 'hint', 'data-testid': 'wish-source', hidden: !source });
+  if (source) sourceLine.textContent = `这个愿来自签：${source.title}（所问：${source.question}）`;
   const list = h('ol', { class: 'wishes', 'aria-label': '愿望簿' });
   const meritLine = h('p', { class: 'hint', 'data-testid': 'merit' });
   const notice = h('div', { class: 'notice' });
@@ -68,7 +74,9 @@ export function xuyuanHall(): HTMLElement {
       h('button', { type: 'button', onclick: reset }, '先不放下'));
     function reset() {
       box.replaceChildren(h('button', { type: 'button', class: 'primary', onclick: choose }, '还愿'),
-        h('button', { type: 'button', onclick: release }, '放下'));
+        h('button', { type: 'button', onclick: release }, '放下'),
+        h('button', { type: 'button', class: 'chip', onclick: () => download(`有据山寺-还愿-${wish.returnOn}.ics`,
+          wishCalendar(wish, new Date()), 'text/calendar') }, '放进日历'));
     }
     reset();
     return box;
@@ -110,13 +118,16 @@ export function xuyuanHall(): HTMLElement {
     let wish: Wish;
     try {
       wish = parseWish({ id: crypto.randomUUID(), category, text: text.value, madeOn, returnOn: returnOn.value,
-        source: null, state: { status: 'made' } });
+        source, state: { status: 'made' } });
     } catch (error) {
       if (!(error instanceof InvalidRecord)) throw error;
       say('alert', error.message);
       return;
     }
     await saveWish(wish);
+    forgetSource();
+    source = null;
+    sourceLine.hidden = true;
     say('status', `许愿牌挂上了。${healthNote(wish.category, wish.text) ?? ''}`);
     text.value = '';
     returnOn.value = '';
@@ -124,6 +135,7 @@ export function xuyuanHall(): HTMLElement {
   }
 
   const form = h('form', { class: 'wish-form', novalidate: true, onsubmit: (event) => void make(event) },
+    sourceLine,
     h('fieldset', { class: 'step' }, h('legend', {}, '类别'), categories),
     h('div', { class: 'step' }, h('label', { for: 'wish-text' }, '心愿'), text,
       h('p', { class: 'hint' }, '心愿原文只存在这台设备上，分享时默认不显示。')),
