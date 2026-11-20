@@ -20,7 +20,7 @@ async function addPilgrim(page: Page, person: {
 
 test('香客簿 keeps people on this device, exports them, clears them and imports them back', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('link', { name: '香客簿' }).click();
+  await page.getByRole('region', { name: '中庭', exact: true }).getByRole('link', { name: '香客簿' }).click();
   await expect(page.getByTestId('pilgrim-empty')).toBeVisible();
 
   await page.getByLabel('出生地').fill('北京');

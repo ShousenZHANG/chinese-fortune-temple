@@ -1,9 +1,9 @@
 // 中庭, laid out like a temple plan: 紫微殿 at the back of the axis, 求签殿 in the middle, the gate at the front,
 // side halls on either hand. Halls that are not built yet say so instead of linking nowhere.
-import { courtyard, guideMonk, moonGate, type HallId } from './art';
-import { artUrl } from './art';
+import { artUrl, guideMonk, moonGate, type HallId } from './art';
 import { h } from './dom';
 import { dharmaName } from './name';
+import { scene } from './scene';
 import { zen } from './zen';
 import { confirmedTimezone, guessedTimezone, localMoment } from './moment';
 import { listWishes } from './records/store';
@@ -40,7 +40,7 @@ function hallTile(hall: Hall): HTMLElement {
 
 function panorama(monk: HTMLImageElement): HTMLElement {
   return h('figure', { class: 'panorama' },
-    courtyard(),
+    scene(),
     h('figcaption', { class: 'guide', 'data-testid': 'guide' },
       monk,
       h('p', { class: 'say' }, `${dharmaName()}，想问哪件事，就进哪座殿。急着求一支签，就去正中的求签殿。`),
