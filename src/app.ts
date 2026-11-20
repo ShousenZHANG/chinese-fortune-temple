@@ -10,8 +10,9 @@ import { xuyuanHall } from './halls/xuyuan';
 import { yuelaoHall } from './halls/yuelao';
 import { ziweiHall } from './halls/ziwei';
 import { xiangke } from './xiangke';
+import { yuanqi } from './yuanqi';
 
-const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, yuelao: yuelaoHall, ziwei: ziweiHall, huangli: huangliHall, wenxin: wenxinHall, xuyuan: xuyuanHall, xiangke };
+const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, yuelao: yuelaoHall, ziwei: ziweiHall, huangli: huangliHall, wenxin: wenxinHall, xuyuan: xuyuanHall, xiangke, yuanqi };
 const BOUNDARY_KEY = 'temple.boundary-seen';
 
 function boundaryNote(): HTMLElement | null {
