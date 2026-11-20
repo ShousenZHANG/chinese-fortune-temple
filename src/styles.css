@@ -1,14 +1,17 @@
 /* Layout: the courtyard is a temple plan on one axis (紫微殿 at the back, 求签殿 mid, 山门 front, side halls on
-   either hand); phones read it front to back as one column. Ink on grey-green paper; cinnabar only for seals and
-   moving-line marks. The one bold moment is the hexagram growing stroke by stroke as coins are tossed. */
+   either hand); phones read it front to back as one column. Palette: 丹青 mineral pigments on warm rice paper —
+   brown-black ink lines, cinnabar for seals and actions, gamboge for warmth, azurite for links. The one bold
+   moment is the hexagram growing stroke by stroke as coins are tossed. */
 :root {
-  --paper: #e8ebe5;
-  --paper-raised: #f3f5f0;
-  --ink: #1c2320;
-  --ink-soft: #57605b;
-  --wash: #c2cac3;
-  --cinnabar: #a3342a;
-  --stone: #2c5c66;
+  --paper: #f5ecda;
+  --paper-raised: #fbf6ec;
+  --ink: #3b2f2a;
+  --ink-soft: #6b5b50;
+  --wash: #e2d3bc;
+  --cinnabar: #c2412d;
+  --gamboge: #e9b949;
+  --stone: #3f6e8c;
+  --radius: 12px;
   --font-kai: "Kaiti SC", "STKaiti", "KaiTi", "楷体", "BiauKai", "Noto Serif SC", "Songti SC", serif;
   --font-song: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "Noto Serif CJK SC", "SimSun", serif;
   --font-ui: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
@@ -23,13 +26,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --paper: #131715;
-    --paper-raised: #1b201d;
-    --ink: #e2e6df;
-    --ink-soft: #9ba49e;
-    --wash: #38413c;
-    --cinnabar: #d65a4d;
-    --stone: #84b5bf;
+    --paper: #211a16;
+    --paper-raised: #2b231e;
+    --ink: #f1e6d3;
+    --ink-soft: #bfaf9c;
+    --wash: #4a3d34;
+    --cinnabar: #e2705a;
+    --gamboge: #f0c468;
+    --stone: #8db6cf;
     color-scheme: dark;
   }
 }
@@ -47,7 +51,7 @@ body {
   padding-block: 1.5rem 2rem;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--wash) 45%, transparent), transparent 14rem) var(--paper);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--gamboge) 22%, transparent), transparent 16rem) var(--paper);
   color: var(--ink);
   font: var(--step-0)/1.7 var(--font-ui);
 }
@@ -84,11 +88,11 @@ button {
   min-height: 2.5rem;
   padding: 0.35rem 1rem;
   border: 1.5px solid var(--ink);
-  border-radius: 3px;
+  border-radius: 999px;
   background: transparent;
   cursor: pointer;
 }
-button.primary { background: var(--ink); color: var(--paper); }
+button.primary { background: var(--cinnabar); border-color: var(--cinnabar); color: var(--paper-raised); }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 :focus-visible { outline: 2px solid var(--stone); outline-offset: 2px; }
 
@@ -97,7 +101,7 @@ input[type="text"], select {
   min-height: 2.75rem;
   padding: 0.4rem 0.75rem;
   border: 1.5px solid var(--ink-soft);
-  border-radius: 3px;
+  border-radius: var(--radius);
   background: var(--paper-raised);
 }
 
@@ -141,13 +145,15 @@ input[type="text"], select {
   gap: 0.75rem;
   padding: 1.25rem 1rem;
   background: var(--paper-raised);
-  border: 1px solid var(--wash);
+  border: 1.5px solid var(--wash);
+  border-radius: var(--radius);
   color: var(--ink);
   text-decoration: none;
   text-align: center;
 }
-a.hall-tile:hover { border-color: var(--ink); }
-.at-qiuqian { border-color: var(--ink); }
+a.hall-tile:hover { border-color: var(--cinnabar); }
+.at-qiuqian { border-color: var(--cinnabar); }
+.at-qiuqian .plaque { border-color: var(--cinnabar); background: color-mix(in srgb, var(--gamboge) 25%, transparent); }
 .hall-tile.closed { color: var(--ink-soft); }
 .gate p { margin: 0; color: var(--ink-soft); font-size: var(--step--1); }
 
@@ -155,6 +161,7 @@ a.hall-tile:hover { border-color: var(--ink); }
   writing-mode: vertical-rl;
   padding: 0.6rem 0.35rem;
   border: 1.5px solid currentColor;
+  border-radius: 4px;
   font: var(--step-2)/1 var(--font-kai);
   letter-spacing: 0.25em;
 }
@@ -191,7 +198,8 @@ a.hall-tile:hover { border-color: var(--ink); }
   padding: 0;
   border-radius: 50%;
   border-width: 2px;
-  background: var(--paper-raised);
+  border-color: var(--ink);
+  background: color-mix(in srgb, var(--gamboge) 35%, var(--paper-raised));
   font: var(--step-1)/1 var(--font-kai);
 }
 .coin::after {
@@ -246,7 +254,8 @@ a.hall-tile:hover { border-color: var(--ink); }
   gap: 1.25rem;
   padding: 1.5rem clamp(1rem, 4vw, 2rem);
   background: var(--paper-raised);
-  border: 1px solid var(--wash);
+  border: 1.5px solid var(--wash);
+  border-radius: var(--radius);
 }
 .card-head { display: flex; align-items: center; gap: 2.5rem; }
 .glyph { display: flex; flex-direction: column-reverse; gap: 0.4rem; }
@@ -257,7 +266,7 @@ a.hall-tile:hover { border-color: var(--ink); }
 .card-first p { margin: 0; font: var(--step-1)/1.85 var(--font-song); }
 
 .card-layer { border-top: 1px solid var(--wash); padding-top: 0.75rem; }
-.card-layer summary { cursor: pointer; color: var(--stone); font-weight: 600; }
+.card-layer summary { cursor: pointer; color: var(--cinnabar); font-weight: 600; }
 .layer-body { display: flex; flex-direction: column; gap: 1rem; margin-top: 0.75rem; }
 .layer-body p { margin: 0; max-width: 40em; }
 .table-scroll { overflow-x: auto; }
