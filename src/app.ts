@@ -3,9 +3,10 @@ import { court } from './court';
 import { h } from './dom';
 import { qiuqianHall } from './halls/qiuqian';
 import { yuelaoHall } from './halls/yuelao';
+import { ziweiHall } from './halls/ziwei';
 import { xiangke } from './xiangke';
 
-const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, yuelao: yuelaoHall, xiangke };
+const VIEWS: Record<string, () => HTMLElement> = { '': court, qiuqian: qiuqianHall, yuelao: yuelaoHall, ziwei: ziweiHall, xiangke };
 const BOUNDARY_KEY = 'temple.boundary-seen';
 
 function boundaryNote(): HTMLElement | null {

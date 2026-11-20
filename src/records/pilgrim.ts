@@ -107,3 +107,14 @@ export function birthJson(p: Pilgrim): Record<string, unknown> {
     ...(time.known ? { hour: time.hour, minute: time.minute } : {}),
   };
 }
+
+export type WithHour = Pilgrim & { time: { known: true; hour: number; minute: number } };
+export const hasHour = (p: Pilgrim): p is WithHour => p.time.known;
+
+/** The same birth as command-line flags (ziwei_calc). Only for a known hour: the chart cannot be drawn without it. */
+export function birthArgs(p: WithHour): string[] {
+  const { date, time } = p;
+  return ['--year', String(date.year), '--month', String(date.month), '--day', String(date.day),
+    '--hour', String(time.hour), '--minute', String(time.minute), '--gender', p.gender, '--city', p.city,
+    ...(date.calendar === 'lunar' ? ['--lunar', ...(date.leap ? ['--leap'] : [])] : [])];
+}

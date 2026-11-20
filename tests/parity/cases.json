@@ -79,6 +79,50 @@
       ]
     },
     {
+      "id": "ziwei-career-city",
+      "script": "ziwei_calc.py",
+      "argv": [
+        "--year",
+        "2001",
+        "--month",
+        "5",
+        "--day",
+        "26",
+        "--hour",
+        "19",
+        "--minute",
+        "10",
+        "--gender",
+        "male",
+        "--city",
+        "北京",
+        "--focus-palace",
+        "官禄"
+      ]
+    },
+    {
+      "id": "ziwei-love-city",
+      "script": "ziwei_calc.py",
+      "argv": [
+        "--year",
+        "2001",
+        "--month",
+        "5",
+        "--day",
+        "26",
+        "--hour",
+        "19",
+        "--minute",
+        "10",
+        "--gender",
+        "male",
+        "--city",
+        "北京",
+        "--focus-palace",
+        "夫妻"
+      ]
+    },
+    {
       "id": "router-emergency",
       "script": "question_router.py",
       "argv": [

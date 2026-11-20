@@ -76,6 +76,18 @@ export function entry(label: string, ...body: Child[]): HTMLElement {
   return h('div', { class: 'entry' }, h('p', { class: 'entry-label' }, label), ...body);
 }
 
+/** A small table: the first cell of each row is its header; a caption also names the table. */
+export function table(head: string[], rows: string[][], caption?: string): HTMLElement {
+  return h('div', { class: 'table-scroll' },
+    h('table', {},
+      caption ? h('caption', {}, caption) : null,
+      h('thead', {}, h('tr', {}, ...head.map((label) => h('th', { scope: 'col' }, label)))),
+      h('tbody', {}, ...rows.map(([first, ...rest]) => h('tr', {}, h('th', { scope: 'row' }, first),
+        ...rest.map((cell) => h('td', {}, cell))))),
+    ),
+  );
+}
+
 /** One reason a passage is on the card: what it backs, and the tool's own quote of it if there is one. */
 export interface Cite {
   id: string;

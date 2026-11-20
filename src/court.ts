@@ -14,7 +14,7 @@ const HALLS: Hall[] = [
   { id: 'qiuqian', name: '求签殿', does: '亲手掷六次铜钱，起一卦问一件事', open: true },
   { id: 'yuelao', name: '月老殿', does: '两人的八字合婚，看合冲刑害', open: true },
   { id: 'wenxin', name: '问心堂', does: '写下心事，得一条现实建议', open: false },
-  { id: 'ziwei', name: '紫微殿', does: '紫微斗数，看事业、感情、财运', open: false },
+  { id: 'ziwei', name: '紫微殿', does: '紫微斗数，看事业、感情、财运', open: true },
   { id: 'huangli', name: '黄历亭', does: '今日、本周等级与择日', open: false },
   { id: 'xuyuan', name: '许愿树', does: '许一个愿，到期回来还愿', open: false },
 ];
@@ -37,7 +37,7 @@ function panorama(): HTMLElement {
     courtyard(),
     h('figcaption', { class: 'guide', 'data-testid': 'guide' },
       guideMonk(),
-      h('p', { class: 'say' }, '想问哪件事，就进哪座殿。求签殿、月老殿已经开门，其余几座还在修。'),
+      h('p', { class: 'say' }, '想问哪件事，就进哪座殿。求签殿、月老殿、紫微殿已经开门，其余几座还在修。'),
     ),
   );
 }

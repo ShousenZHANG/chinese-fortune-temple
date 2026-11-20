@@ -1,7 +1,7 @@
 // pair_facts output to a 签文卡. The first layer is the tool's `say`, line for line; it ends one line with
 // "明细见 relations", so the second layer names its relation table that way.
 import { h } from '../dom';
-import { citations, citesIn, entry, type CardModel, type Cite } from './card';
+import { citations, citesIn, entry, table, type CardModel, type Cite } from './card';
 
 type Pillar = 'year' | 'month' | 'day' | 'hour';
 type Side = 'A' | 'B';
@@ -85,17 +85,6 @@ function pillarCell(subject: Subject, pillar: Pillar): string {
   if (pillar === 'hour' && !subject.hour_known) return '时辰不知道';
   const candidates = subject.undecided_pillars[pillar] ?? [];
   return candidates.length ? `未定：${candidates.join(' 或 ')}` : '未定';
-}
-
-function table(head: string[], rows: string[][], caption?: string): HTMLElement {
-  return h('div', { class: 'table-scroll' },
-    h('table', {},
-      caption ? h('caption', {}, caption) : null,
-      h('thead', {}, h('tr', {}, ...head.map((label) => h('th', { scope: 'col' }, label)))),
-      h('tbody', {}, ...rows.map(([first, ...rest]) => h('tr', {}, h('th', { scope: 'row' }, first),
-        ...rest.map((cell) => h('td', {}, cell))))),
-    ),
-  );
 }
 
 function relationRow(row: Relation): string[] {
