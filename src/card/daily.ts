@@ -38,11 +38,9 @@ export function dailyCard(cast: CastResult, lin: LinResult, date: string): CardM
   const versions = lin.lin.versions.filter((v): v is Version & { text: string } => Boolean(v.text));
   const yuan = versions.find((v) => v.book === 'yilin');
   const main = yuan ?? versions[0];
-  // chinese-fortune v6.3.0's answer_check reads yilin_siku:… as siku:… (fixed in chinese-fortune#22, unreleased), so a
-  // verse only the 四库本 has is listed without quotation marks until the Skill is upgraded; it is still the tool's text.
   const lead = yuan
     ? `《焦氏易林》${lin.lin.key}：「${verse(yuan.text)}」（${yuan.passage_id}）`
-    : `《焦氏易林》${lin.lin.key}（元刊本缺这一林，下为四库本，${main.passage_id}）：${verse(main.text)}`;
+    : `《焦氏易林》${lin.lin.key}（元刊本缺这一林，下为四库本）：「${verse(main.text)}」（${main.passage_id}）`;
   const cites: Cite[] = versions.map((v) => ({ id: v.passage_id, label: v.edition, quote: verse(v.text) }));
   return {
     question: `每日一签（${date}）`,

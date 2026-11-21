@@ -47,18 +47,20 @@ test("two people tied with the red thread get the Skill's own pair facts, and no
   await expect(page.getByTestId('passage-xieji:c036:p0016').locator('blockquote')).toContainText('三元九宫');
 });
 
-// chinese-fortune v6.3.0: on the 《协纪辨方书》 path pair_facts quotes 「上元起兑七中元起坎一下元起巽四」, but the bundled
-// transcription has layout spaces inside that line, so its own answer_check cannot find the quote and the card is
-// withheld. When the Skill fixes this, this test fails: then expect the card, equal to reference pair-xieji.
-test("the 《协纪辨方书》 path is withheld with the self-check's reason while the Skill cannot verify its quote", async ({ page }) => {
+// The 《协纪辨方书》 path is the parity case pair-xieji. chinese-fortune v6.3.0 withheld this card because its own
+// quote of the start table did not match the bundled text; v6.3.1 quotes it verbatim, so the card now passes.
+test('the 《协纪辨方书》 path gets the Skill’s own pair facts for that book', async ({ page }) => {
   test.setTimeout(180_000);
   await seed(page);
   await page.goto('/#/yuelao');
   await page.getByRole('radio', { name: /协纪辨方书/ }).check();
   await page.getByRole('button', { name: '系红绳' }).click();
-  const withheld = page.getByRole('alert');
-  await expect(withheld).toContainText('没有通过自检', { timeout: 150_000 });
-  await expect(withheld).toContainText('随包古籍内找不到这段原文：「上元起兑七中元起坎一下元起巽四」');
+
+  const card = page.getByRole('article', { name: '签文卡' });
+  await expect(card).toBeVisible({ timeout: 150_000 });
+  const expected = (await reference('pair-xieji')).say;
+  await expect(card.getByTestId('first-answer').locator('p')).toHaveText(expected);
+  await expect(card).toContainText('起兑七中元起坎一下元起巽四');
 });
 
 test('月老殿 sends visitors to 香客簿 when it holds fewer than two people', async ({ page }) => {
