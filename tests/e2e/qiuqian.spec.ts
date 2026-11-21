@@ -37,7 +37,7 @@ test('six tosses of my own coins give the same reading as the Skill CLI', async 
   await expect(card.getByRole('heading')).toContainText('山风蛊');
   const first = card.getByTestId('first-answer').locator('p');
   await expect(first).toHaveText(reference.first_answer.map((part: { text: string }) => part.text));
-  await expect(card.getByTestId('skill-mark')).toHaveText('chinese-fortune v6.3.0');
+  await expect(card.getByTestId('skill-mark')).toHaveText('chinese-fortune v6.3.1');
 
   await card.getByText('看盘面').click();
   await expect(card.getByRole('table')).toContainText('官鬼');
