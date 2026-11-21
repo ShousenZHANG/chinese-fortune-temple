@@ -16,6 +16,10 @@ test('缘起 lists the Skill, every bundled book with its licence, the life guid
   await expect(books).toContainText('CC BY-SA 4.0');
   await expect(page.getByTestId('life-source')).toContainText('《高性价比人生指南》');
   await expect(page.getByTestId('life-source')).toContainText('CC BY 4.0');
+  // The page names the analytics beacon and says what it sends and what it never carries.
+  await expect(page.getByTestId('analytics-note')).toContainText('Cloudflare Web Analytics');
+  await expect(page.getByTestId('analytics-note')).toContainText('不用 cookie');
+  await expect(page.getByTestId('analytics-note')).toContainText('出生资料、心愿、所问之事和签文都不在其中');
   for (const text of ['Pyodide', 'MPL-2.0', 'lunar-python', 'tzdata', 'GPT Image', '合成']) {
     await expect(page.locator('main')).toContainText(text);
   }

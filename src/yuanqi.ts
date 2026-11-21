@@ -94,6 +94,10 @@ export function yuanqi(): HTMLElement {
     h('h2', { id: 'yuanqi-title', class: 'hall-title' }, tr('缘起', 'Sources')),
     h('p', { class: 'lede' }, tr('这里用到的东西都写在这一页：从哪里来，按什么许可使用。', 'Everything this site uses, where it comes from and under which licence.')),
     section(tr('本站', 'This site'), h('p', {}, tr('页面代码按 MIT 许可开源：', 'The page code is open source under MIT: '), link(SITE_REPO, SITE_REPO.replace('https://', '')), '。')),
+    section(tr('访问统计', 'Visit statistics'),
+      h('p', { 'data-testid': 'analytics-note' }, tr(
+        '访问统计用 Cloudflare Web Analytics：浏览器会把打开的页面地址、从哪个网站来和加载耗时发给 Cloudflare，用来汇总访问量和页面快慢。它不用 cookie 或浏览器存储，也不跨网站追踪个人。你录入的出生资料、心愿、所问之事和签文都不在其中。',
+        'Visit counts come from Cloudflare Web Analytics: your browser sends Cloudflare the page address, the site you came from and how long the page took to load, which it adds up into visit and speed figures. It uses no cookies or browser storage and does not follow anyone across sites. Your birth details, wishes, questions and cards are not part of it.'))),
     section(tr('算法', 'The Skill'), skill),
     section(tr('古籍', 'Classics'),
       h('p', {}, tr('古籍按公版的历史原文收录；取自维基文库的转录保留 CC BY-SA 4.0 署名和来源链接；现代译注不收。下表从算法包本身读出。', 'The classics are public-domain historical texts; transcriptions from Wikisource keep their CC BY-SA 4.0 attribution and source links; modern commentary is left out. The table is read from the Skill package itself.')),
