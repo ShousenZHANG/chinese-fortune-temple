@@ -6,7 +6,7 @@
 // file must hash to its git blob id there, so a single changed byte is refused.
 // The version in skill.config.json is the only place an upgrade happens (spec, issue #1).
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { unzipSync } from 'fflate';
@@ -138,6 +138,10 @@ async function main() {
   mkdirSync(OUT, { recursive: true });
   const kept = existsSync(manifestPath) ? JSON.parse(readFileSync(manifestPath, 'utf8')) : null;
   const release = await verifiedRelease(kept);
+  // After an upgrade the previous version's archive would otherwise ship too, and the service worker would precache it.
+  for (const name of readdirSync(OUT)) {
+    if (/^chinese-fortune-v.+\.zip$/.test(name) && name !== archive) rmSync(join(OUT, name));
+  }
   extractServedFiles();
   const sources = {};
   for (const name of sourceSkills) sources[name] = await verifiedSource(name, release.commit, kept);

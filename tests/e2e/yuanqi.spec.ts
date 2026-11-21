@@ -8,8 +8,8 @@ test('缘起 lists the Skill, every bundled book with its licence, the life guid
   await page.getByRole('region', { name: '中庭', exact: true }).getByRole('link', { name: '缘起' }).click();
   await expect(page.getByRole('heading', { name: '缘起', level: 2 })).toBeVisible();
 
-  await expect(page.getByTestId('skill-source')).toContainText('chinese-fortune v6.3.0');
-  await expect(page.getByTestId('skill-source')).toContainText('87d2202');
+  await expect(page.getByTestId('skill-source')).toContainText('chinese-fortune v6.3.1');
+  await expect(page.getByTestId('skill-source')).toContainText('bf3b759');
   const books = page.getByRole('table', { name: '随包古籍' });
   await expect(books.locator('tbody tr')).toHaveCount(15, { timeout: 150_000 });
   await expect(books).toContainText('协纪辨方书');

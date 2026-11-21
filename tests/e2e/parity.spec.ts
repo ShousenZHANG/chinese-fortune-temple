@@ -31,7 +31,7 @@ for (const c of cases) {
 
 // Switching skills in one Worker drops the other skill's modules and puts the right scripts directory first.
 // Running chinese-fortune, then life-guide, then chinese-fortune again must still match the CLI every time.
-// Both skills ship safety_stop.py; at v6.3.0 the two copies are identical, so this checks the switch itself,
+// Both skills ship safety_stop.py; at v6.3.1 the two copies are identical, so this checks the switch itself,
 // not which copy is picked once they differ.
 test('one worker switches skills without mixing their modules', async ({ page }) => {
   test.skip(test.info().project.name !== 'desktop', 'desktop only');
