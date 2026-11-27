@@ -6,6 +6,7 @@ import { dailySlip } from './daily';
 import { placeName, tr } from './i18n';
 import { dharmaName } from './name';
 import { scene } from './scene';
+import { markSlow, sceneChoice } from './scene-mode';
 import { zen } from './zen';
 import { confirmedTimezone, guessedTimezone, localMoment } from './moment';
 import { listWishes } from './records/store';
@@ -34,16 +35,37 @@ function hallTile(hall: Hall): HTMLElement {
       h('span', { class: 'does' }, tr(...hall.does))));
 }
 
+// v2 spec 场景模式: the painting shows at once. When this visit is 3D, the 3D court takes its place once three.js
+// has loaded; if three.js cannot load or WebGL cannot start, the painting stays. A 3D court too slow for this device
+// gives way to the painting, says so once, and is remembered (scene-mode.ts).
+function upgradeTo3d(figure: HTMLElement, painting: HTMLElement, checkFrameRate: boolean): void {
+  import('./scene3d/court3d').then(({ court3d }) => {
+    if (!painting.isConnected) return;
+    const view = court3d({ checkFrameRate, onSlow: () => {
+      markSlow();
+      view.replaceWith(scene());
+      figure.before(h('aside', { class: 'reminder', role: 'status' },
+        h('p', {}, tr('已换成 2.5D，可在设置里换回 3D。', 'Switched to 2.5D. You can switch back to 3D in Settings.')),
+        h('a', { href: '#/shezhi' }, tr('去设置', 'Open Settings'))));
+    } });
+    painting.replaceWith(view);
+  }).catch(() => undefined);
+}
+
 function panorama(monk: HTMLImageElement): HTMLElement {
   const name = dharmaName();
-  return h('figure', { class: 'panorama' },
-    scene(),
+  const painting = scene();
+  const figure = h('figure', { class: 'panorama' },
+    painting,
     h('figcaption', { class: 'guide', 'data-testid': 'guide' },
       monk,
       h('p', { class: 'say' }, tr(`${name}，想问哪件事，就进哪座殿。急着求一支签，就去正中的求签殿。`,
         `${name}, go into the hall for what you want to ask. In a hurry? The Coin Hall in the middle.`)),
     ),
   );
+  const choice = sceneChoice();
+  if (choice.mode === '3d') upgradeTo3d(figure, painting, choice.checkFrameRate);
+  return figure;
 }
 
 /** 合掌: the guide bows back for a moment. */

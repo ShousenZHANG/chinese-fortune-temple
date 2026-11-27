@@ -1,11 +1,34 @@
-// 追问设置 (spec stories 61, 62, 64): the visitor's own provider and key, kept in this browser and deletable; and why a
-// Claude or ChatGPT subscription cannot be used on a web page like this one.
+// 设置: the courtyard's 3D／2.5D switch (v2 spec 场景模式); and 追问 (spec stories 61, 62, 64): the visitor's own
+// provider and key, kept in this browser and deletable, and why a Claude or ChatGPT subscription cannot be used on a
+// web page like this one.
 import { h } from './dom';
 import { tr } from './i18n';
 import { CLAUDE_MODEL } from './followup/ask';
 import { deleteProvider, loadProvider, parseProvider, saveProvider, validEndpoint } from './followup/settings';
+import { canDraw3d, offersSwitch, pickedScene, pickScene, sceneChoice, urlAsks3d, type SceneMode } from './scene-mode';
 
 const SKILL_REPO = 'https://github.com/ShousenZHANG/chinese-fortune';
+
+// Until 3D is finished the switch is offered only to a visit that opened 3D by address or has picked before.
+function sceneSwitch(): HTMLElement | null {
+  if (!offersSwitch()) return null;
+  const part = (...children: (HTMLElement | null)[]) => h('section', { class: 'yuanqi-part', 'aria-labelledby': 'scene-title' },
+    h('h3', { id: 'scene-title', class: 'section-title' }, tr('中庭画面', 'Courtyard scene')), ...children);
+  if (!canDraw3d()) {
+    return part(h('p', {}, tr('这个浏览器画不了 3D，中庭用 2.5D 插画。', 'This browser cannot draw 3D, so the courtyard is the 2.5D painting.')));
+  }
+  const current = pickedScene() ?? sceneChoice().mode;
+  const radio = (value: SceneMode, label: string) => h('label', { class: 'choice' },
+    h('input', { type: 'radio', name: 'scene', value, ...(current === value ? { checked: true } : {}) }), label);
+  const group = h('div', { class: 'row', role: 'radiogroup', 'aria-label': tr('中庭画面', 'Courtyard scene') },
+    radio('3d', '3D'), radio('2.5d', '2.5D'));
+  group.addEventListener('change', (event) => pickScene((event.target as HTMLInputElement).value === '3d' ? '3d' : '2.5d'));
+  return part(group,
+    h('p', { class: 'hint' }, tr('2.5D 是插画版的中庭。选了就记在这台设备上，回到中庭就换。',
+      'The 2.5D courtyard is the painting. Your pick is kept on this device and applies when you go back to the courtyard.')),
+    urlAsks3d() ? h('p', { class: 'hint' }, tr('这次的网址带着 ?scene=3d，去掉以前中庭都是 3D。',
+      'This address carries ?scene=3d, so the courtyard stays 3D until that is removed.')) : null);
+}
 
 export function shezhi(): HTMLElement {
   const current = loadProvider();
@@ -55,7 +78,9 @@ export function shezhi(): HTMLElement {
   sync();
   return h('section', { class: 'hall', 'aria-labelledby': 'shezhi-title' },
     h('a', { class: 'back', href: '#/' }, tr('回中庭', 'Back to the courtyard')),
-    h('h2', { id: 'shezhi-title', class: 'hall-title' }, tr('追问设置', 'Follow-up settings')),
+    h('h2', { id: 'shezhi-title', class: 'hall-title' }, tr('设置', 'Settings')),
+    sceneSwitch(),
+    h('h3', { class: 'section-title' }, tr('追问', 'Follow-up questions')),
     h('p', { class: 'lede' }, tr('想对签文卡追问，可以填你自己的模型密钥。默认不接任何模型；不填也能用全部功能。', 'To ask follow-up questions about a card, add your own model key. No model is connected by default, and everything else works without one.')),
     h('div', { class: 'pilgrim-form' },
       h('fieldset', { class: 'step' }, h('legend', {}, tr('服务商', 'Provider')), kinds,
