@@ -38,8 +38,8 @@ function boundaryNote(): HTMLElement | null {
   return note;
 }
 
-// Header tools: the 法名 with a way to change it, the one switch that mutes every sound, the follow-up settings and
-// the interface language.
+// Header tools: the 法名 with a way to change it, the one switch that mutes every sound, the settings and the
+// interface language.
 function siteTools(): HTMLElement {
   const name = h('span', { class: 'dharma', 'data-testid': 'dharma-name' }, dharmaName());
   const mute = h('button', { type: 'button', class: 'chip', 'aria-pressed': String(muted()) }, tr('静音', 'Mute'));
@@ -53,7 +53,7 @@ function siteTools(): HTMLElement {
     h('span', {}, tr('法名 ', 'Dharma name '), name),
     h('button', { type: 'button', class: 'chip', onclick: () => { name.textContent = renameDharma(); } }, tr('换一个法名', 'Another name')),
     mute,
-    h('a', { href: '#/shezhi' }, tr('追问设置', 'Follow-up settings')),
+    h('a', { href: '#/shezhi' }, tr('设置', 'Settings')),
     h('button', { type: 'button', class: 'chip', lang: other === 'en' ? 'en' : 'zh-CN', onclick: () => setLang(other) },
       other === 'en' ? 'English' : '中文'));
 }
