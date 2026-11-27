@@ -21,20 +21,23 @@ const DEFAULT_MODE = '2.5d' as SceneMode;
 const PICKED_KEY = 'temple.scene';
 const SLOW_KEY = 'temple.scene-slow';
 const PAINTING: SceneChoice = { mode: '2.5d', checkFrameRate: false };
+// What this page has written, so a pick or a fallback still holds for the visit when storage is blocked.
+const kept = new Map<string, string>();
 
 function read(key: string): string | null {
   try {
-    return localStorage.getItem(key);
+    return localStorage.getItem(key) ?? kept.get(key) ?? null;
   } catch {
-    return null;
+    return kept.get(key) ?? null;
   }
 }
 
 function write(key: string, value: string): void {
+  kept.set(key, value);
   try {
     localStorage.setItem(key, value);
   } catch {
-    // Storage blocked: the choice holds for this page.
+    // Storage blocked: kept above for this page.
   }
 }
 
