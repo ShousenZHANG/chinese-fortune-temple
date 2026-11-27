@@ -43,11 +43,11 @@ function write(key: string, value: string): void {
 
 export const urlAsks3d = (): boolean => new URLSearchParams(location.search).get('scene') === '3d';
 
+/** A stored or submitted value, if it names a mode. */
+export const asSceneMode = (value: string | null): SceneMode | null => (value === '3d' || value === '2.5d' ? value : null);
+
 /** The mode the visitor picked in Settings, if any. */
-export function pickedScene(): SceneMode | null {
-  const value = read(PICKED_KEY);
-  return value === '3d' || value === '2.5d' ? value : null;
-}
+export const pickedScene = (): SceneMode | null => asSceneMode(read(PICKED_KEY));
 
 export const pickScene = (mode: SceneMode): void => write(PICKED_KEY, mode);
 
@@ -69,7 +69,8 @@ export function canDraw3d(): boolean {
   return webgl2;
 }
 
-function wanted(): SceneChoice {
+/** Rules 2–6: what this visit asks for before knowing whether the browser can draw it. */
+function requestedChoice(): SceneChoice {
   if (urlAsks3d()) return { mode: '3d', checkFrameRate: false };
   const picked = pickedScene();
   if (picked) return { mode: picked, checkFrameRate: false };
@@ -79,7 +80,7 @@ function wanted(): SceneChoice {
 }
 
 export function sceneChoice(): SceneChoice {
-  const choice = wanted();
+  const choice = requestedChoice();
   return choice.mode === '3d' && !canDraw3d() ? PAINTING : choice;
 }
 

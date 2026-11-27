@@ -76,6 +76,18 @@ function frameRateWatch(onSlow: () => void, signal: AbortSignal): (now: number) 
   };
 }
 
+/** Stops drawing and frees the GPU memory and the WebGL context at once, rather than whenever the page is collected. */
+function release(renderer: WebGLRenderer, scene: Scene): void {
+  renderer.setAnimationLoop(null);
+  scene.traverse((object) => {
+    if (!(object instanceof Mesh)) return;
+    object.geometry.dispose();
+    (object.material as Material).dispose();
+  });
+  renderer.dispose();
+  renderer.forceContextLoss();
+}
+
 /** The 3D court view. Throws when WebGL 2 cannot start, and frees its WebGL context once taken off the page. */
 export function court3d({ checkFrameRate, onSlow }: Court3dOptions): HTMLElement {
   const canvas = h('canvas', { role: 'img',
@@ -99,23 +111,13 @@ export function court3d({ checkFrameRate, onSlow }: Court3dOptions): HTMLElement
   const watch = checkFrameRate && !measured ? frameRateWatch(onSlow, listeners.signal) : null;
   measured ||= checkFrameRate;
 
-  function stop(): void {
-    renderer.setAnimationLoop(null);
-    resized.disconnect();
-    listeners.abort();
-    scene.traverse((object) => {
-      if (!(object instanceof Mesh)) return;
-      object.geometry.dispose();
-      (object.material as Material).dispose();
-    });
-    renderer.dispose();
-    renderer.forceContextLoss();
-  }
-
   let shown = false;
   renderer.setAnimationLoop((now) => {
     if (!canvas.isConnected) {
-      if (shown) stop();
+      if (!shown) return;
+      resized.disconnect();
+      listeners.abort();
+      release(renderer, scene);
       return;
     }
     shown = true;

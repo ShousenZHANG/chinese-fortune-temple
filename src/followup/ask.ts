@@ -65,7 +65,7 @@ async function askClaude(key: string, system: string, user: string): Promise<str
     return text;
   } catch (error) {
     if (error instanceof AskFailed) throw error;
-    if (error instanceof Anthropic.AuthenticationError) throw new AskFailed('密钥无效或已失效，请到追问设置里检查。');
+    if (error instanceof Anthropic.AuthenticationError) throw new AskFailed('密钥无效或已失效，请到设置里检查。');
     if (error instanceof Anthropic.PermissionDeniedError) throw new AskFailed('这把密钥没有调用这个模型的权限。');
     if (error instanceof Anthropic.RateLimitError) throw new AskFailed('请求太频繁或额度已用完，稍后再试。');
     if (error instanceof Anthropic.APIConnectionError) throw new AskFailed('连不上 Anthropic，请检查网络。');

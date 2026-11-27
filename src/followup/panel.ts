@@ -12,7 +12,7 @@ export function followupPanel(model: CardModel): HTMLElement {
   const provider = loadProvider();
   if (!provider) {
     return h('div', { class: 'followup' },
-      h('p', {}, tr('追问要用你自己的模型密钥。还没有填。', 'Follow-up questions use your own model key. None is saved yet.')), h('a', { href: '#/shezhi' }, tr('去追问设置', 'Open follow-up settings')));
+      h('p', {}, tr('追问要用你自己的模型密钥。还没有填。', 'Follow-up questions use your own model key. None is saved yet.')), h('a', { href: '#/shezhi' }, tr('去设置填密钥', 'Add a key in Settings')));
   }
   const where = provider.kind === 'anthropic' ? 'Anthropic' : new URL(provider.baseUrl).host;
   const text = h('textarea', { id: 'followup-text', rows: '2', maxlength: String(MAX_FOLLOWUP) });

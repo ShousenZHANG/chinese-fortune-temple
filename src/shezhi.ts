@@ -5,7 +5,7 @@ import { h } from './dom';
 import { tr } from './i18n';
 import { CLAUDE_MODEL } from './followup/ask';
 import { deleteProvider, loadProvider, parseProvider, saveProvider, validEndpoint } from './followup/settings';
-import { canDraw3d, offersSwitch, pickedScene, pickScene, sceneChoice, urlAsks3d, type SceneMode } from './scene-mode';
+import { asSceneMode, canDraw3d, offersSwitch, pickedScene, pickScene, sceneChoice, urlAsks3d, type SceneMode } from './scene-mode';
 
 const SKILL_REPO = 'https://github.com/ShousenZHANG/chinese-fortune';
 
@@ -22,7 +22,10 @@ function sceneSwitch(): HTMLElement | null {
     h('input', { type: 'radio', name: 'scene', value, ...(current === value ? { checked: true } : {}) }), label);
   const group = h('div', { class: 'row', role: 'radiogroup', 'aria-label': tr('中庭画面', 'Courtyard scene') },
     radio('3d', '3D'), radio('2.5d', '2.5D'));
-  group.addEventListener('change', (event) => pickScene((event.target as HTMLInputElement).value === '3d' ? '3d' : '2.5d'));
+  group.addEventListener('change', (event) => {
+    const mode = asSceneMode((event.target as HTMLInputElement).value);
+    if (mode) pickScene(mode);
+  });
   return part(group,
     h('p', { class: 'hint' }, tr('2.5D 是插画版的中庭。选了就记在这台设备上，回到中庭就换。',
       'The 2.5D courtyard is the painting. Your pick is kept on this device and applies when you go back to the courtyard.')),
